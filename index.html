@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>从点亮到控制：模拟安装照明电路</title>
+  <style>
+    :root {
+      --stage-bg:#11131a;
+      --ink:#171717;
+      --muted:rgba(23,23,23,.68);
+      --outline:#1f1f1f;
+      --white:rgba(255,255,255,.84);
+      --coral:#e85d4e;
+      --lime:#c4d94e;
+      --lavender:#c5b5e0;
+      --sky:#8bb4f7;
+      --violet:#a06ce8;
+      --yellow:#f2d160;
+      --peach:#f5b895;
+      --mint:#a8e6cf;
+      --shadow:rgba(26,26,26,.12);
+      --font:"Microsoft YaHei","微软雅黑","SimHei","PingFang SC",sans-serif;
+      --ease:cubic-bezier(.16,1,.3,1);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:var(--stage-bg);font-family:var(--font);color:var(--ink)}
+    .deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg)}
+    .deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0}
+    .slide{position:absolute;inset:0;width:1920px;height:1080px;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .46s ease;overflow:hidden}
+    .slide.active{visibility:visible;opacity:1;pointer-events:auto;z-index:2}
+    .slide::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.84),rgba(255,255,255,.48)),url("capsule-v18-assets/background.png") center/cover no-repeat;z-index:0}
+    .slide::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 20%,rgba(242,209,96,.16),transparent 28%),radial-gradient(circle at 82% 26%,rgba(139,180,247,.15),transparent 30%),radial-gradient(circle at 55% 88%,rgba(168,230,207,.14),transparent 34%);z-index:1;pointer-events:none}
+    .content{position:relative;z-index:2;height:100%;padding:78px 110px}
+    h1,h2,h3{font-family:var(--font);font-weight:800;letter-spacing:0;color:var(--ink)}
+    h1{font-size:82px;line-height:1.06}
+    h2{font-size:58px;line-height:1.15}
+    h3{font-size:34px;line-height:1.22}
+    p,li{font-size:27px;line-height:1.55;color:var(--muted)}
+    img,svg{max-width:100%;max-height:100%}
+    .slide-header{text-align:center;margin-bottom:40px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:42px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+    .stack{display:grid;gap:24px}
+    .card,.tag,.chip,.big-number{border:2px solid var(--outline);box-shadow:8px 8px 0 var(--shadow)}
+    .card{border-radius:34px;background:var(--white);padding:34px;backdrop-filter:blur(8px)}
+    .tag,.chip{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-weight:800;background:var(--white);white-space:nowrap}
+    .tag{padding:15px 34px;font-size:22px;margin-bottom:22px}
+    .chip{padding:10px 18px;font-size:18px;box-shadow:4px 4px 0 var(--shadow)}
+    .accent-coral{background:var(--coral)}.accent-lime{background:var(--lime)}.accent-lavender{background:var(--lavender)}.accent-sky{background:var(--sky)}.accent-violet{background:var(--violet)}.accent-yellow{background:var(--yellow)}.accent-peach{background:var(--peach)}.accent-mint{background:var(--mint)}
+    .big-number{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:900;margin-bottom:22px}
+    .float-pill{position:absolute;z-index:3;border:2px solid var(--outline);border-radius:999px;padding:13px 28px;font-size:22px;font-weight:900;box-shadow:6px 6px 0 var(--shadow);transform:rotate(var(--r))}
+    .cover-layout{display:grid;grid-template-columns:1fr 440px;align-items:center;gap:80px}
+    .hero-copy{max-width:840px;margin-top:28px}
+    .cover-orbit{width:360px;height:360px;border-radius:50%;border:2px solid var(--outline);background:rgba(255,255,255,.66);display:grid;place-items:center;font-size:120px;font-weight:900;box-shadow:18px 18px 0 rgba(139,180,247,.2);overflow:hidden}
+    .cover-character{width:330px;height:330px;object-fit:contain;filter:drop-shadow(0 18px 18px rgba(0,0,0,.18))}
+    .question-character-card{margin:28px auto 0;width:430px;height:360px;display:grid;place-items:center;background:rgba(255,255,255,.56);overflow:hidden}
+    .question-character{width:310px;height:310px;object-fit:contain;filter:drop-shadow(0 16px 18px rgba(0,0,0,.16))}
+    .video-box{height:500px;border:2px solid var(--outline);border-radius:34px;background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(139,180,247,.3));box-shadow:8px 8px 0 var(--shadow);display:grid;place-items:center;overflow:hidden}
+    .slide-video{width:100%;height:100%;display:block;object-fit:cover;border-radius:30px;background:#0f1218}
+    .play{width:122px;height:122px;border-radius:50%;border:2px solid var(--outline);background:var(--yellow);display:grid;place-items:center;font-size:54px;font-weight:900;box-shadow:8px 8px 0 var(--shadow)}
+    .wire-demo{height:420px;border:2px solid var(--outline);border-radius:34px;background:rgba(255,255,255,.72);position:relative;box-shadow:8px 8px 0 var(--shadow)}
+    .wire-demo::before{content:"";position:absolute;left:120px;right:120px;top:198px;height:16px;border-radius:999px;background:#36c3f4;box-shadow:0 0 18px rgba(54,195,244,.7)}
+    .wire-demo::after{content:"";position:absolute;left:50%;top:155px;width:84px;height:84px;border-radius:50%;border:12px solid #245fa8;transform:translateX(-50%)}
+    .stage-number{position:absolute;right:62px;bottom:48px;z-index:3;font-size:20px;font-weight:800;color:rgba(23,23,23,.58)}
+    .deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.86);border:2px solid var(--outline);border-radius:999px;padding:12px 18px;box-shadow:8px 8px 0 rgba(255,255,255,.18)}
+    .deck-controls button{width:42px;height:42px;border-radius:50%;border:2px solid var(--outline);background:var(--yellow);font-size:24px;font-weight:900;cursor:pointer}
+    #counter{font-size:16px;font-weight:900;min-width:68px;text-align:center}
+    .progress{width:190px;height:10px;border:2px solid var(--outline);border-radius:999px;background:#fff;overflow:hidden}
+    .progress span{display:block;height:100%;width:0;background:var(--coral)}
+    .reveal,.reveal-left,.reveal-scale{opacity:0;transition:opacity .72s var(--ease),transform .72s var(--ease)}
+    .reveal{transform:translateY(34px)}.reveal-left{transform:translateX(-42px)}.reveal-scale{transform:scale(.92)}
+    .slide.active .reveal,.slide.active .reveal-left,.slide.active .reveal-scale{opacity:1;transform:none}
+    .d1{transition-delay:.08s}.d2{transition-delay:.18s}.d3{transition-delay:.28s}.d4{transition-delay:.38s}
+
+    .circuit-card{min-height:635px}
+    .circuit-stage{height:360px;margin:22px 0 24px;border-radius:34px;border:2px solid var(--outline);background:radial-gradient(circle at 22% 58%,rgba(74,200,255,.18),transparent 36%),linear-gradient(135deg,rgba(247,252,255,.96),rgba(235,248,255,.78));position:relative;overflow:hidden}
+    .circuit-svg{position:absolute;inset:0;width:100%;height:100%}
+    .wire-back,.wire-main,.current-flow,.battery-lead,.lead-positive,.lead-negative{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .wire-back{stroke:rgba(36,50,62,.16);stroke-width:24}
+    .wire-main{stroke:#36c3f4;stroke-width:12;stroke-dasharray:30 18;filter:drop-shadow(0 0 14px rgba(54,195,244,.72));animation:dashMove 1.45s linear infinite,circuitPower 4.2s ease-in-out infinite}
+    .current-flow{stroke:#fff;stroke-width:7;stroke-dasharray:6 64;filter:drop-shadow(0 0 12px rgba(255,255,255,.95)) drop-shadow(0 0 15px rgba(54,195,244,.9));animation:currentFlow 1.05s linear infinite,circuitPower 4.2s ease-in-out infinite}
+    .battery-lead{stroke:#36c3f4;stroke-width:12;stroke-dasharray:30 18;filter:drop-shadow(0 0 14px rgba(54,195,244,.72));animation:dashMove 1.45s linear infinite,circuitPower 4.2s ease-in-out infinite}.lead-positive{stroke:#ff5d54;stroke-width:8}.lead-negative{stroke:#2464b4;stroke-width:8}.terminal-dot{fill:#fff;stroke-width:5}.terminal-plus{stroke:#ff5d54}.terminal-minus{stroke:#2464b4}.terminal-text{font:900 24px var(--font);text-anchor:middle;dominant-baseline:middle;fill:#1d2f47}
+    .branch-always{animation:dashMove 1.45s linear infinite}.flow-always{animation:currentFlow 1.08s linear infinite}.branch-switched{animation:dashMove 1.45s linear infinite,circuitPower 4.2s ease-in-out infinite}.flow-switched{animation:currentFlow 1.05s linear infinite,circuitPower 4.2s ease-in-out infinite}
+    .switch-node{fill:#245fa8;stroke:#245fa8;stroke-width:4}.switch-tip{fill:#fff;stroke:#245fa8;stroke-width:5}
+    .switch-blade-svg{stroke:#2a9b88;stroke-width:8;stroke-linecap:round;transform-box:fill-box;transform-origin:left center;animation:switchFlip 4.2s ease-in-out infinite}.switch-fixed{animation:none}
+    .asset-battery,.asset-bulb{position:absolute;object-fit:contain;pointer-events:none;z-index:4}
+    .asset-battery{width:90px}.asset-bulb{width:104px;filter:drop-shadow(0 0 18px rgba(255,211,71,.8))}
+    .asset-bulb.off-bulb{filter:none;opacity:0}.asset-bulb.on-bulb{animation:bulbBeat 1.25s ease-in-out infinite,bulbOnCycle 4.2s ease-in-out infinite}.asset-bulb.cycle-off{animation:bulbOffCycle 4.2s ease-in-out infinite}
+    .series-circuit .battery{left:108px;top:118px}.series-circuit .bulb-one{left:306px;top:112px}.series-circuit .bulb-two{left:500px;top:112px}
+    .parallel-circuit .battery{left:116px;top:120px}.parallel-circuit .bulb-one{left:392px;top:62px}.parallel-circuit .bulb-two{left:392px;top:196px}
+    .parallel-circuit .bottom-on{animation:bulbBeat 1.25s ease-in-out infinite}.parallel-circuit .top-off{animation:bulbOffCycle 4.2s ease-in-out infinite}.parallel-circuit .top-on{animation:bulbBeat 1.25s ease-in-out infinite,bulbOnCycle 4.2s ease-in-out infinite}
+    .graph-circuit .graph-wire-back,.graph-circuit .graph-wire-live,.graph-circuit .graph-current{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .graph-circuit .graph-wire-back{stroke:rgba(36,50,62,.18);stroke-width:26}
+    .graph-circuit .graph-wire-live{stroke:#36c3f4;stroke-width:13;stroke-dasharray:30 18;filter:drop-shadow(0 0 14px rgba(54,195,244,.72));animation:dashMove 1.45s linear infinite}
+    .graph-circuit .graph-current{stroke:#fff;stroke-width:7;stroke-dasharray:7 66;filter:drop-shadow(0 0 12px rgba(255,255,255,.95)) drop-shadow(0 0 15px rgba(54,195,244,.9));animation:currentFlow 1.05s linear infinite}
+    .graph-circuit .switched{animation-name:dashMove,circuitPower;animation-duration:1.45s,4.2s;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite}
+    .graph-circuit .current.switched{animation-name:currentFlow,circuitPower;animation-duration:1.05s,4.2s;animation-timing-function:linear,ease-in-out;animation-iteration-count:infinite,infinite}
+    .graph-circuit .off-branch{opacity:.26;animation:none}.graph-circuit .socket{fill:#245fa8;stroke:#245fa8;stroke-width:4}.graph-circuit .switch-tip{fill:#fff;stroke:#245fa8;stroke-width:5}.graph-circuit .switch-blade{stroke:#2a9b88;stroke-width:8;stroke-linecap:round}.graph-circuit .switch-blade.opening{transform-box:fill-box;transform-origin:left center;animation:switchFlip 4.2s ease-in-out infinite}.graph-circuit .bulb-img{width:116px;height:116px;filter:drop-shadow(0 0 18px rgba(255,211,71,.8))}.graph-circuit .bulb-off-img{opacity:0;filter:none;animation:bulbOffCycle 4.2s ease-in-out infinite}.graph-circuit .bulb-on-img{animation:bulbBeat 1.25s ease-in-out infinite,bulbOnCycle 4.2s ease-in-out infinite}.graph-circuit .steady-on{animation:bulbBeat 1.25s ease-in-out infinite}.graph-circuit .steady-off{opacity:1;filter:none}.graph-circuit .node-label{font:900 18px var(--font);fill:#1d2f47;text-anchor:middle;dominant-baseline:middle;paint-order:stroke;stroke:#fff;stroke-width:5}
+    .legend{position:absolute;left:28px;bottom:22px;display:flex;gap:12px;z-index:5}
+    @keyframes dashMove{to{stroke-dashoffset:-48}}@keyframes currentFlow{to{stroke-dashoffset:-70}}@keyframes circuitPower{0%,46%{opacity:1}56%,100%{opacity:0}}@keyframes bulbBeat{50%{transform:scale(1.06);filter:drop-shadow(0 0 28px rgba(255,211,71,.98))}}@keyframes bulbOnCycle{0%,46%{opacity:1}56%,100%{opacity:0}}@keyframes bulbOffCycle{0%,46%{opacity:0}56%,100%{opacity:1}}@keyframes switchFlip{0%,46%{transform:rotate(0deg)}56%,100%{transform:rotate(-28deg)}}
+    @media print{html,body{width:1920px;height:auto;overflow:visible;background:#fff}.deck-viewport{position:static;overflow:visible}.deck-stage{position:static;transform:none!important}.slide{position:relative;visibility:visible!important;opacity:1!important;break-after:page;page-break-after:always}.deck-controls{display:none!important}}
+  </style>
+</head>
+<body>
+  <div class="deck-viewport">
+    <main class="deck-stage" id="deckStage">
+      <section class="slide active">
+        <span class="float-pill accent-coral" style="left:72px;top:54px;--r:-12deg;">科学</span><span class="float-pill accent-sky" style="right:116px;top:108px;--r:14deg;">电路</span><span class="float-pill accent-lime" style="right:330px;bottom:184px;--r:-8deg;">工程</span>
+        <div class="content cover-layout"><div><div class="tag accent-yellow reveal">小学科学融合课</div><h1 class="reveal d1">从点亮到控制：模拟安装照明电路</h1><p class="hero-copy reveal d2">今天我们帮 AI 小智修复家庭照明。先让灯亮起来，再想办法让不同房间的灯听从控制。</p></div><div class="cover-orbit reveal-scale d2"><img class="cover-character" src="capsule-v18-assets/charactersidea.png" alt="灵感角色"></div></div><div class="stage-number">01 / 18</div>
+      </section>
+      <section class="slide"><div class="content grid-2" style="align-items:center"><div class="card reveal-left"><div class="tag accent-lavender">情境驱动</div><h2>AI 小智发来求助</h2><p>小智的家庭照明系统电量不足，部分灯忽明忽暗。它需要同学们判断电路问题，并设计一个更可靠的照明方案。</p></div><div class="card reveal-scale d2" style="height:520px;display:grid;place-items:center;text-align:center"><div><div class="big-number accent-sky" style="width:150px;height:150px;font-size:58px;margin:0 auto 28px">AI</div><h3>任务信号已接收</h3><p style="margin-top:16px">目标：让灯能亮、能控、能解释。</p></div></div></div><div class="stage-number">02 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-coral">真实矛盾</div><h2>一盏灯坏了，其他灯会不会跟着灭？</h2></div><div class="grid-2"><div class="card reveal-left"><div class="big-number accent-coral">串</div><h3>串联</h3><p>一盏灯坏，全屋可能一起熄灭。问题常常藏在同一条通路里。</p></div><div class="card reveal d2"><div class="big-number accent-sky">并</div><h3>并联</h3><p>一盏灯损坏，其他灯仍可能正常工作。每条支路有自己的通路。</p></div></div><div class="card reveal-scale d3 question-character-card"><img class="question-character" src="capsule-v18-assets/charactersquestion.png" alt="思考角色"></div></div><div class="stage-number">03 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-yellow">视频 1</div><h2>观察现实照明系统</h2></div><div class="grid-2" style="align-items:center"><div class="video-box reveal-left"><video controls class="slide-video"><source src="Video1.mp4" type="video/mp4"></video></div><div class="card reveal d2"><h3>看视频时，抓住三个问题</h3><div class="stack" style="margin-top:26px"><p><span class="chip accent-lime">1</span> 哪些地方需要分区控制？</p><p><span class="chip accent-sky">2</span> 哪些灯不能一起熄灭？</p><p><span class="chip accent-peach">3</span> 开关到底控制了哪一段通路？</p></div></div></div></div><div class="stage-number">04 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-coral">串联电路</div><h2>只有一条路径，断开就全部熄灭</h2></div><div class="card circuit-card reveal-scale"><div class="circuit-stage series-circuit"><svg class="circuit-svg graph-circuit" data-circuit="series" viewBox="0 0 1060 360" role="img" aria-label="串联电路图模型动画"></svg><div class="legend"><span class="chip accent-coral">演示</span><span class="chip">闭合时两盏灯一起亮；断开时一起熄灭</span></div></div><p>串联像一条单行路。只要这条路上有一处断开，电流就走不成完整回路。</p></div></div><div class="stage-number">05 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-sky">并联电路</div><h2>电流有几条路径，支路可以分别工作</h2></div><div class="card circuit-card reveal-scale"><div class="circuit-stage parallel-circuit"><svg class="circuit-svg graph-circuit" data-circuit="parallel" viewBox="0 0 1060 360" role="img" aria-label="并联电路图模型动画"></svg><div class="legend"><span class="chip accent-sky">演示</span><span class="chip">上方支路断开，下方支路仍能发光</span></div></div><p>并联像分岔路。某一条支路出了问题，另一条支路还有自己的闭合回路。</p></div></div><div class="stage-number">06 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-mint">数学测量</div><h2>工程尺寸要量准，也要写准</h2></div><div class="grid-3"><div class="card reveal d1"><div class="big-number accent-coral">15.5</div><h3>客厅线路</h3><p>单位：cm。小数点后的一位也不能随便省略。</p></div><div class="card reveal d2"><div class="big-number accent-sky">22.8</div><h3>卧室线路</h3><p>线路越长，误差越容易被放大。</p></div><div class="card reveal d3"><div class="big-number accent-yellow">8.7</div><h3>开关位置</h3><p>开关位置偏了，后面安装也会跟着难。</p></div></div></div><div class="stage-number">07 / 18</div></section>
+      <section class="slide"><div class="content grid-2" style="align-items:center"><div class="card reveal-left"><div class="tag accent-coral">误差影响</div><h2>差 5 mm、8 mm，真的有关系</h2><p>导线短一点，可能接不上；长太多，可能堆在一起，影响安全。工程里，误差不是小事。</p></div><div class="card reveal d2"><h3>判断一下</h3><div class="stack" style="margin-top:26px"><p><span class="chip accent-yellow">5 mm</span> 可能让接口拉得太紧。</p><p><span class="chip accent-sky">8 mm</span> 可能让导线绕到不该去的地方。</p><p><span class="chip accent-mint">结论</span> 测量越准，安装越稳。</p></div></div></div><div class="stage-number">08 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-yellow">成本计算</div><h2>把材料变成一张清楚的账单</h2></div><div class="grid-3"><div class="card reveal d1"><h3>导线</h3><p><span class="chip accent-sky">12 元 / 米</span></p></div><div class="card reveal d2"><h3>灯泡</h3><p><span class="chip accent-yellow">5.5 元 / 个</span></p></div><div class="card reveal d3"><h3>开关</h3><p><span class="chip accent-coral">2.35 元 / 个</span></p></div></div><div class="card reveal d4" style="margin-top:34px;text-align:center"><h3>示例总成本：27.7 元</h3><p>先列数量，再乘单价，最后合在一起。</p></div></div><div class="stage-number">09 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-peach">成本讨论</div><h2>多一点线路，方案还划算吗？</h2></div><div class="grid-2" style="align-items:stretch"><div class="card reveal-left"><h3>案例条件</h3><div class="stack" style="margin-top:24px"><p><span class="chip accent-sky">导线</span> 12 元 / 米</p><p><span class="chip accent-yellow">灯泡</span> 5.5 元 / 个</p><p><span class="chip accent-coral">开关</span> 2.35 元 / 个</p><p>为了让卧室灯可以单独控制，方案需要多用 0.5 m 导线，并可能多加 1 个开关。</p></div></div><div class="card reveal d2"><h3>小组讨论，不急着算答案</h3><div class="stack" style="margin-top:24px"><p>增加的导线成本可以怎样表示？</p><p>如果再增加一个开关，总成本会怎样变化？</p><p>多花的钱换来“单独控制”，你认为值得吗？请说明理由。</p></div></div></div></div><div class="stage-number">10 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-lavender">视频 2</div><h2>把串联和并联放在一起看</h2></div><div class="grid-2" style="align-items:center"><div class="video-box reveal-left"><video controls class="slide-video"><source src="Video2.mp4" type="video/mp4"></video></div><div class="card reveal d2"><h3>观察重点</h3><p>同样是两盏灯，断开一个位置后，串联和并联的结果为什么不一样？请用“路径”来解释。</p></div></div></div><div class="stage-number">11 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-lime">科学结论</div><h2>不用硬背，抓住“路”就明白</h2></div><div class="grid-2"><div class="card reveal-left"><div class="big-number accent-coral">1</div><h3>串联 = 一条路</h3><p>任意一处断开，完整回路被切断，两盏灯一起熄灭。</p></div><div class="card reveal d2"><div class="big-number accent-sky">多</div><h3>并联 = 多条路</h3><p>一条支路断开，另一条支路仍可能保持闭合并发光。</p></div></div></div><div class="stage-number">12 / 18</div></section>
+      <section class="slide"><div class="content grid-2" style="align-items:center"><div class="card reveal-left"><div class="tag accent-violet">空间定位</div><h2>先确定灯和开关放在哪里</h2><p>真正安装前，先在图上标出灯、开关、电池和导线位置。位置定清楚，后面才不会乱接。</p></div><div class="card reveal d2"><h3>小组任务</h3><div class="stack" style="margin-top:24px"><p>标出每盏灯的位置</p><p>标出每个开关控制哪一盏灯</p><p>说出为什么这样安排</p></div></div></div><div class="stage-number">13 / 18</div></section>
+      <section class="slide"><div class="content grid-2" style="align-items:center"><div class="wire-demo reveal-scale"><div class="wire-path"></div></div><div class="card reveal d2"><div class="tag accent-mint">精准剥线</div><h2>导线处理也要按尺寸来</h2><p>剥得太短，接触不稳；剥得太长，裸露部分可能碰到别处。尺寸越清楚，电路越安全。</p></div></div><div class="stage-number">14 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-coral">逻辑布线</div><h2>按电路图连接，不凭感觉接</h2></div><div class="grid-3"><div class="card reveal d1"><div class="big-number accent-coral">1</div><h3>看路径</h3><p>先判断是一条路，还是多条支路。</p></div><div class="card reveal d2"><div class="big-number accent-yellow">2</div><h3>接部件</h3><p>电池、灯泡、开关都要进入回路。</p></div><div class="card reveal d3"><div class="big-number accent-sky">3</div><h3>查节点</h3><p>每个接口都要连稳，不留“假连接”。</p></div></div></div><div class="stage-number">15 / 18</div></section>
+      <section class="slide"><div class="content grid-2" style="align-items:center"><div class="card reveal-left"><div class="tag accent-sky">系统测试</div><h2>最后用现象检查电路</h2><p>开关闭合，灯是否点亮？开关断开，灯是否熄灭？如果结果和设计不一致，就回到路径上找原因。</p></div><div class="card reveal d2"><h3>测试清单</h3><div class="stack" style="margin-top:24px"><p>灯能不能亮</p><p>开关能不能控制</p><p>断开一条支路后，另一条是否还能工作</p></div></div></div><div class="stage-number">16 / 18</div></section>
+      <section class="slide"><div class="content"><div class="slide-header reveal"><div class="tag accent-yellow">数学总结</div><h2>精确测量，可以省成本，也能少返工</h2></div><div class="grid-2"><div class="card reveal-left"><h3>成本</h3><p>材料多一点，费用就多一点。先算清楚，设计才更可靠。</p></div><div class="card reveal d2"><h3>误差</h3><p>误差会放大损耗，也会影响安装。测量不是附加题，是工程的一部分。</p></div></div></div><div class="stage-number">17 / 18</div></section>
+      <section class="slide"><span class="float-pill accent-coral" style="left:86px;bottom:120px;--r:12deg">复盘</span><span class="float-pill accent-sky" style="right:96px;bottom:150px;--r:-10deg">未来</span><span class="float-pill accent-lavender" style="right:138px;top:100px;--r:16deg">智能家居</span><div class="content" style="display:grid;place-items:center;text-align:center"><div style="max-width:1080px"><div class="tag accent-mint reveal">时代升华</div><h1 class="reveal d1">让每一盏灯，都有自己的路</h1><p class="reveal d2" style="margin:28px auto 0;max-width:900px">并联电路是智能家居的基础。分区照明、自动控制、单灯管理，背后都离不开清楚的路径设计。</p><div class="reveal d3" style="margin-top:40px;display:flex;justify-content:center;gap:18px"><span class="chip accent-lime">能亮</span><span class="chip accent-sky">能控</span><span class="chip accent-peach">能计算</span></div></div></div><div class="stage-number">18 / 18</div></section>
+    </main>
+  </div>
+  <nav class="deck-controls" aria-label="幻灯片控制"><button id="prevBtn" title="上一页">‹</button><span id="counter">01 / 18</span><div class="progress" aria-hidden="true"><span id="progressBar"></span></div><button id="nextBtn" title="下一页">›</button></nav>
+  <script>
+    const SVG_NS="http://www.w3.org/2000/svg";
+    const circuitGraphs={
+      series:{
+        nodes:{start:{x:190,y:184},bulb1:{x:335,y:184,type:"bulb",state:"cycle"},bulb2:{x:520,y:184,type:"bulb",state:"cycle"},switch1:{x:720,y:184,type:"switch",mode:"cycle"},end:{x:900,y:184},return:{x:900,y:292},source:{x:190,y:292}},
+        edges:[{from:"start",to:"bulb1"},{from:"bulb1",to:"bulb2"},{from:"bulb2",to:"switch1"},{from:"switch1",to:"end",switched:true},{from:"end",to:"return"},{from:"return",to:"source"},{from:"source",to:"start"}]
+      },
+      parallel:{
+        nodes:{split:{x:250,y:210},topBulb:{x:395,y:136,type:"bulb",state:"cycle"},topSwitch:{x:650,y:136,type:"switch",mode:"cycle"},joinTop:{x:850,y:136},bottomBulb:{x:395,y:270,type:"bulb",state:"on"},bottomSwitch:{x:650,y:270,type:"switch",mode:"closed"},joinBottom:{x:850,y:270},tail:{x:960,y:210}},
+        edges:[{from:"split",to:"topBulb",via:[{x:250,y:136}],switched:true},{from:"topBulb",to:"topSwitch",switched:true},{from:"topSwitch",to:"joinTop",switched:true},{from:"joinTop",to:"tail",via:[{x:960,y:136}],switched:true},{from:"split",to:"bottomBulb",via:[{x:250,y:270}]},{from:"bottomBulb",to:"bottomSwitch"},{from:"bottomSwitch",to:"joinBottom"},{from:"joinBottom",to:"tail",via:[{x:960,y:270}]},{from:"tail",to:"split",via:[{x:960,y:314},{x:250,y:314}]}]
+      }
+    };
+    function svgEl(tag,attrs={}){const el=document.createElementNS(SVG_NS,tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el}
+    function pathBetween(a,b,via=[]){return [a,...via,b].map((p,i)=>`${i?"L":"M"}${p.x} ${p.y}`).join(" ")}
+    function renderWire(svg,graph,cls){graph.edges.forEach(edge=>{const a=graph.nodes[edge.from],b=graph.nodes[edge.to];svg.appendChild(svgEl("path",{class:`${cls}${edge.switched?" switched":""}`,d:pathBetween(a,b,edge.via||[])}))})}
+    function renderBulb(svg,node){const size=116,x=node.x-size/2,y=node.y-size/2;const onClass=node.state==="on"?"steady-on":"bulb-on-img";svg.appendChild(svgEl("image",{class:`bulb-img ${onClass}`,href:"capsule-v18-assets/bulb_on_cut.png",x,y,width:size,height:size}));if(node.state==="cycle"){svg.appendChild(svgEl("image",{class:"bulb-img bulb-off-img",href:"capsule-v18-assets/bulb_off_cut.png",x,y,width:size,height:size}))}}
+    function renderSwitch(svg,node){const open=node.mode==="cycle";svg.appendChild(svgEl("circle",{class:"socket",cx:node.x,cy:node.y,r:14}));svg.appendChild(svgEl("line",{class:`switch-blade${open?" opening":""}`,x1:node.x+8,y1:node.y,x2:node.x+88,y2:node.y}));svg.appendChild(svgEl("circle",{class:"switch-tip",cx:node.x+132,cy:node.y,r:13}))}
+    function renderGraphCircuits(){document.querySelectorAll(".graph-circuit[data-circuit]").forEach(svg=>{const graph=circuitGraphs[svg.dataset.circuit];if(!graph)return;svg.textContent="";renderWire(svg,graph,"graph-wire-back");renderWire(svg,graph,"graph-wire-live");renderWire(svg,graph,"graph-current current");Object.values(graph.nodes).forEach(node=>{if(node.type==="bulb")renderBulb(svg,node);if(node.type==="switch")renderSwitch(svg,node)})})}
+    class Deck{constructor(){this.slides=[...document.querySelectorAll(".slide")];this.index=0;this.stage=document.getElementById("deckStage");this.counter=document.getElementById("counter");this.bar=document.getElementById("progressBar");this.bind();this.scale();const start=Number(new URLSearchParams(location.search).get("slide")||1)-1;this.show(start)}bind(){document.getElementById("prevBtn").onclick=()=>this.show(this.index-1);document.getElementById("nextBtn").onclick=()=>this.show(this.index+1);addEventListener("keydown",e=>{if(["ArrowRight","PageDown"," "].includes(e.key)){e.preventDefault();this.show(this.index+1)}if(["ArrowLeft","PageUp"].includes(e.key)){e.preventDefault();this.show(this.index-1)}});addEventListener("resize",()=>this.scale())}scale(){const s=Math.min(innerWidth/1920,innerHeight/1080);this.stage.style.transform=`scale(${s})`;this.stage.style.left=`${(innerWidth-1920*s)/2}px`;this.stage.style.top=`${(innerHeight-1080*s)/2}px`}show(i){this.index=Math.max(0,Math.min(this.slides.length-1,i));this.slides.forEach((s,n)=>s.classList.toggle("active",n===this.index));this.counter.textContent=`${String(this.index+1).padStart(2,"0")} / ${String(this.slides.length).padStart(2,"0")}`;this.bar.style.width=`${((this.index+1)/this.slides.length)*100}%`}}
+    renderGraphCircuits();
+    window.deck = new Deck();
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
