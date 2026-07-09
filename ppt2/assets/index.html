@@ -1,0 +1,2729 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>巧布并联照明路，精算小数加减账</title>
+  <style>
+:root {
+  --ink: #17324a;
+  --muted: #607183;
+  --blue: #2d76c5;
+  --green: #2c9368;
+  --red: #c94a4a;
+  --yellow: #ffd66b;
+  --paper: #fffaf0;
+  --panel: #ffffff;
+  --line: #cad9e6;
+  --wire: #3f5263;
+  --nav-h: 76px;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: url("https://lanselotyichenmashiro.oss-cn-shanghai.aliyuncs.com/PPT1/assets/immersive-classroom-background.png") center center / cover no-repeat fixed;
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+}
+
+button, input, textarea { font: inherit; }
+button { touch-action: manipulation; }
+
+.deck-shell {
+  min-height: 100vh;
+  display: block;
+}
+
+.slide-stage {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.slide {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  max-height: none;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  overflow: hidden;
+  padding: 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.slide-header {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #e7f2fb;
+  color: #255f95;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.slide h1 {
+  margin: 8px 0 0;
+  font-size: 34px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.slide-number {
+  min-width: 76px;
+  text-align: right;
+  color: #255f95;
+  font-weight: 900;
+  font-size: 34px;
+}
+.slide-number span { font-size: 18px; color: var(--muted); }
+
+.pdv2-grid {
+  position: relative;
+  z-index: 6;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, .68fr) minmax(0, 1.82fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 20px;
+}
+
+.zone-card {
+  min-height: 0;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid rgba(117, 154, 185, .42);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 10px 26px rgba(23, 50, 74, .07);
+  backdrop-filter: blur(6px) saturate(1.04);
+}
+
+.zone-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1d405d;
+  color: white;
+  font-weight: 900;
+}
+.zone-label span {
+  color: #cfe6f6;
+  font-size: 13px;
+}
+
+.context-zone {
+  border-color: rgba(240, 201, 91, .48);
+  background: rgba(255, 247, 216, .72);
+}
+.action-zone {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+.feedback-zone {
+  border-color: #bdd8c9;
+  background: #effaf4;
+}
+.explanation-zone {
+  border-color: #bfd1e1;
+  background: #f4f9fd;
+}
+.action-goal {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 244, 206, .86);
+  font-weight: 800;
+}
+
+.interaction-zone {
+  min-height: 0;
+  overflow: auto;
+}
+
+.deck-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  z-index: 80;
+  height: auto;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #17324a;
+  color: white;
+}
+
+.nav-btn, .check-btn, .action-btn, .choice-btn, .mission-card, .compare-card, .fault-card, .labor-step, .measure-card {
+  border: 0;
+  border-radius: 8px;
+  min-height: 48px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.nav-btn {
+  width: 56px;
+  height: 52px;
+  background: var(--yellow);
+  font-size: 34px;
+  color: #17324a;
+}
+.nav-btn:disabled { opacity: .45; cursor: not-allowed; }
+.check-btn, .action-btn {
+  padding: 12px 18px;
+  background: var(--yellow);
+  color: #17324a;
+}
+.check-btn { background: #77d7a4; }
+.action-btn.secondary { background: #d9e8f3; }
+.action-btn.danger { background: #ffd8d2; color: #762d2d; }
+.page-meter { min-width: 96px; text-align: center; font-size: 22px; font-weight: 900; }
+
+.cover-layout, .rescue-layout, .lesson-grid, .budget-layout, .material-board, .summary-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  height: 100%;
+}
+
+.assistant-card, .goal-list, .interaction-card, .control-card, .question-card, .budget-panel, .budget-result, .quote-card, .measure-card, .sum-card, .measure-card, .measure-card, .measure-layout > *, .measure-card, .measure-card, .material-board > *, .builder-side, .toolbox, .workbench, .feedback {
+  border: 1px solid rgba(133, 164, 190, .48);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .82);
+  padding: 18px;
+}
+
+.card-title {
+  margin-bottom: 10px;
+  color: #255f95;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.battery-widget {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  font-weight: 900;
+}
+.battery-shell {
+  height: 28px;
+  border: 3px solid #17324a;
+  border-radius: 8px;
+  padding: 3px;
+  background: white;
+}
+.battery-shell div {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--green);
+  transition: width .35s ease;
+}
+.battery-shell.danger div { background: var(--red); }
+.battery-shell.full div { background: var(--green); }
+
+.large-callout {
+  padding: 22px;
+  border-radius: 8px;
+  background: #eaf4fd;
+  font-size: 26px;
+  font-weight: 900;
+}
+.goal-list { display: grid; align-content: center; gap: 12px; }
+.goal-chip {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fff6d8;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.video-box {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 260px;
+  border: 3px dashed #83aeca;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #e8f5ff, #fff5d3);
+}
+.play-mark {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 10px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  font-size: 42px;
+}
+
+.real-video-box {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(320px, 48vh, 620px);
+  padding: 0;
+  overflow: hidden;
+  border: 3px solid rgba(131, 174, 202, .72);
+  border-radius: 16px;
+  background: #071827;
+  box-shadow: 0 18px 42px rgba(23, 50, 74, .16);
+}
+
+.lesson-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 310px);
+  object-fit: contain;
+  background: #071827;
+  border-radius: 12px;
+}
+
+.rescue-video-layout,
+.principle-video-layout {
+  min-height: 0;
+  height: 100%;
+}
+
+.rescue-video-layout .assistant-card {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.mission-grid, .compare-board, .fault-board, .labor-steps, .measure-layout {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.mission-card, .compare-card, .fault-card, .labor-step, .measure-card {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  min-height: 130px;
+  padding: 16px;
+  text-align: left;
+  color: var(--ink);
+  background: white;
+  border: 2px solid var(--line);
+}
+.mission-card strong, .compare-card strong, .measure-card strong {
+  font-size: 24px;
+  color: #255f95;
+}
+.mission-card.selected, .labor-step.selected, .measure-card.selected {
+  border-color: var(--green);
+  background: #effaf4;
+}
+
+.choice-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+.choice-btn {
+  padding: 16px;
+  text-align: left;
+  background: #edf6ff;
+  border: 2px solid #bcd5e8;
+  color: var(--ink);
+}
+
+.feedback {
+  min-height: 58px;
+  font-size: 18px;
+  line-height: 1.45;
+}
+.feedback.good { border-color: var(--green); background: #effaf4; }
+.feedback.bad { border-color: var(--red); background: #fff0ed; }
+.good-text { color: #237653; }
+.bad-text { color: #b53d3d; }
+
+.touch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.circuit-lesson { grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); }
+.circuit-board {
+  position: relative;
+  min-height: 330px;
+  border: 2px solid #b8ccdc;
+  border-radius: 8px;
+  background: #f8fcff;
+  overflow: hidden;
+}
+.circuit-svg, .mini-circuit .circuit-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+}
+.mini-circuit { height: 270px; overflow: hidden; }
+
+.wire {
+  stroke: var(--wire);
+  stroke-width: 7;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.current {
+  opacity: 0;
+  stroke: #f0b400;
+  stroke-width: 5;
+  stroke-dasharray: 10 14;
+  stroke-linecap: round;
+  fill: none;
+  animation: flow 1s linear infinite;
+}
+.current.on { opacity: 1; }
+@keyframes flow { to { stroke-dashoffset: -48; } }
+.battery { fill: #fff; stroke: #1d405d; stroke-width: 3; }
+.label { fill: #17324a; font-size: 18px; font-weight: 900; }
+.pole { fill: #17324a; font-size: 26px; font-weight: 900; }
+.bulb-glass { fill: #eef4f8; stroke: #53697a; stroke-width: 3; }
+.filament { fill: none; stroke: #8a6b18; stroke-width: 3; }
+.bulb-on .bulb-glass {
+  fill: #ffe178;
+  filter: drop-shadow(0 0 13px #ffc52e);
+}
+.switch-line {
+  stroke: #1d405d;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transform-origin: center;
+  transition: transform .2s ease;
+}
+.switch-open { transform: rotate(-18deg); }
+.break-mark { opacity: 0; }
+.break-mark line { stroke: var(--red); stroke-width: 7; stroke-linecap: round; }
+.break-mark.break-on { opacity: 1; }
+
+.house-mode { position: relative; }
+.house-plan {
+  position: absolute;
+  inset: 48px 36% 22px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  z-index: 0;
+  pointer-events: none;
+}
+.house-room {
+  border: 3px solid #b8ccdc;
+  border-radius: 8px;
+  background: rgba(255,255,255,.72);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 900;
+}
+.house-room small { font-size: 14px; color: var(--muted); }
+.house-circuit-board { z-index: 1; background: rgba(248,252,255,.72); }
+
+.builder-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) 260px;
+  gap: 14px;
+  height: 100%;
+}
+.toolbox {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow: auto;
+}
+.part {
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 2px solid #9bbbd4;
+  border-radius: 8px;
+  background: #edf7ff;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+.part span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff6d8;
+  font-weight: 900;
+}
+.part strong { font-size: 15px; }
+.dropped.dragging {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  width: 140px;
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--blue);
+  border-radius: 8px;
+  background: white;
+}
+.workbench {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  background: #f9fcff;
+}
+.house-outline {
+  position: absolute;
+  inset: 82px 18px 34px 96px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.room {
+  display: grid;
+  place-items: start;
+  padding: 12px;
+  border: 2px solid #aebfce;
+  border-radius: 8px;
+  background: rgba(255,255,255,.75);
+  font-weight: 900;
+}
+.slot {
+  position: absolute;
+  z-index: 3;
+  width: 118px;
+  min-height: 50px;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border: 2px dashed #6e879b;
+  border-radius: 8px;
+  background: rgba(255,255,255,.88);
+  font-size: 14px;
+  text-align: center;
+}
+.slot.filled {
+  border-style: solid;
+  border-color: var(--green);
+  background: #effaf4;
+  font-weight: 900;
+}
+.bench-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.bench-wire {
+  fill: none;
+  stroke: #8b99a4;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 12 10;
+}
+
+.material-board { grid-template-columns: 1fr 1fr; }
+.quote-row, .measure-strip {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #e5edf3;
+}
+.quote-row small { grid-column: 1 / -1; color: var(--muted); }
+.material-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+.material-table th, .material-table td {
+  border: 1px solid #cbd9e5;
+  padding: 9px;
+  text-align: left;
+  vertical-align: middle;
+}
+.material-table th { background: #e8f4fc; }
+.qty-input, .answer-input {
+  width: 98px;
+  min-height: 44px;
+  border: 2px solid #a9bfd1;
+  border-radius: 8px;
+  padding: 8px;
+}
+.answer-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+  font-weight: 900;
+}
+.formula {
+  min-height: 72px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff6d8;
+  color: #255f95;
+  font-size: 23px;
+  font-weight: 900;
+  word-break: break-word;
+}
+.status-line {
+  min-height: 56px;
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.student-answer {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px;
+  border: 2px solid #b8ccdc;
+  border-radius: 8px;
+  resize: vertical;
+}
+.labor-step span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #255f95;
+  color: white;
+}
+.summary-points {
+  display: grid;
+  gap: 12px;
+}
+.summary-points div {
+  padding: 18px;
+  border-radius: 8px;
+  background: #fff6d8;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+@media (max-width: 900px) {
+  .slide-stage { padding: 0; }
+  .slide {
+    width: 100vw;
+    height: 100vh;
+    max-height: none;
+    padding: 14px;
+    overflow: auto;
+  }
+  .slide h1 { font-size: 26px; }
+  .cover-layout, .rescue-layout, .lesson-grid, .budget-layout, .material-board, .summary-layout, .builder-layout {
+    grid-template-columns: 1fr;
+  }
+  .mission-grid, .compare-board, .fault-board, .labor-steps, .measure-layout { grid-template-columns: 1fr 1fr; }
+  .task-strip, .teacher-feedback { align-items: flex-start; flex-direction: column; }
+  .real-video-box { min-height: 240px; }
+  .lesson-video { max-height: 46vh; }
+}
+
+.ppt-v3-home,
+.ppt-v3-end {
+  display: grid;
+  grid-template-rows: 1fr;
+  background: transparent;
+}
+
+.ppt-cover-layer,
+.end-layer {
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  padding: clamp(32px, 6vw, 88px);
+  color: #1f3b57;
+}
+
+.cover-kicker {
+  margin: 0 0 28px;
+  color: #1b8a7a;
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 800;
+}
+
+.cover-title {
+  margin: 0;
+  display: grid;
+  gap: 18px;
+  font-size: clamp(52px, 7vw, 90px);
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.cover-title span {
+  display: block;
+}
+
+.cover-subtitle {
+  margin: 34px 0 0;
+  color: #5c7184;
+  font-size: clamp(24px, 2.7vw, 38px);
+  font-weight: 800;
+}
+
+.cover-meta {
+  margin-top: 58px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px 36px;
+  color: #40586c;
+  font-size: clamp(18px, 1.7vw, 26px);
+  font-weight: 700;
+}
+
+.end-layer h1 {
+  margin: 0;
+  color: #1f3b57;
+  font-size: clamp(72px, 9vw, 128px);
+  line-height: 1;
+}
+
+.end-layer p {
+  margin: 34px 0 0;
+  color: #5c7184;
+  font-size: clamp(18px, 2vw, 28px);
+  font-weight: 700;
+}
+
+.slide[data-page-type="lesson"] .pdv2-grid {
+  grid-template-columns: minmax(260px, .68fr) minmax(0, 1.82fr);
+  grid-template-rows: auto auto auto;
+}
+
+.slide[data-page-type="lesson"] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.teacher-zone {
+  border-color: rgba(191, 162, 224, .48);
+  background: rgba(247, 241, 255, .72);
+}
+
+.slide[data-page-type="lesson"] .action-zone {
+  grid-column: 2;
+  grid-row: 1 / span 4;
+}
+
+.slide[data-page-type="lesson"] [hidden] {
+  display: none !important;
+}
+
+.status-shell {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.status-bar {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border: 2px solid #9ec7dc;
+  border-radius: 8px;
+  background: #eef8ff;
+  color: #17324a;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.step-btn {
+  min-width: 118px;
+}
+
+.step-complete {
+  opacity: .55;
+  cursor: default;
+}
+
+.step-locked {
+  display: none !important;
+}
+
+.classroom-character-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.classroom-character {
+  position: fixed;
+  width: clamp(220px, 18vw, 340px);
+  height: auto;
+  object-fit: contain;
+  opacity: 0;
+  filter: drop-shadow(0 14px 20px rgba(23, 50, 74, .22));
+  animation: characterEnter 400ms ease forwards;
+}
+
+.classroom-character.pos-left-bottom {
+  left: clamp(-72px, -3vw, -24px);
+  bottom: -28px;
+}
+
+.classroom-character.pos-right-bottom {
+  right: clamp(-72px, -3vw, -24px);
+  bottom: -28px;
+}
+
+.classroom-character.pos-left-middle {
+  left: clamp(-96px, -4vw, -38px);
+  top: 48%;
+  transform: translateY(calc(-50% + 10px));
+}
+
+.classroom-character.pos-right-middle {
+  right: clamp(-96px, -4vw, -38px);
+  top: 48%;
+  transform: translateY(calc(-50% + 10px));
+}
+
+@keyframes characterEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.classroom-character.pos-left-middle,
+.classroom-character.pos-right-middle {
+  animation-name: characterEnterMiddle;
+}
+
+@keyframes characterEnterMiddle {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-50% + 10px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+}
+
+/* Web Classroom Interface overrides: CSS-only layout pass */
+.slide {
+  padding: 22px 34px 94px;
+  gap: 18px;
+}
+
+.slide-header {
+  padding: 4px 4px 0;
+  align-items: flex-start;
+}
+
+.slide-header > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.section-badge {
+  min-width: 220px;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: 18px;
+  background: rgba(232, 245, 255, .92);
+  color: #205b90;
+  font-size: clamp(23px, 1.85vw, 31px);
+  font-weight: 950;
+  line-height: 1;
+  text-align: center;
+  box-shadow: 0 12px 26px rgba(37, 95, 149, .13);
+  backdrop-filter: blur(8px) saturate(1.08);
+}
+
+.slide h1 {
+  margin-top: 18px;
+  max-width: min(1180px, calc(100vw - 190px));
+  color: #123252;
+  font-size: clamp(34px, 3.2vw, 58px);
+  font-weight: 950;
+  line-height: 1.06;
+  text-shadow: 0 3px 12px rgba(255, 255, 255, .72);
+}
+
+.slide-number {
+  padding-top: 10px;
+  color: rgba(23, 50, 74, .72);
+  font-size: clamp(34px, 3vw, 50px);
+}
+
+.slide[data-page-type="lesson"] {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.slide[data-page-type="lesson"] .pdv2-grid {
+  width: min(100%, 1840px);
+  justify-self: center;
+  grid-template-columns: minmax(300px, .34fr) minmax(0, 1fr);
+  grid-template-rows: minmax(170px, .52fr) minmax(170px, .48fr);
+  gap: 24px;
+  padding: 0 2px;
+}
+
+.zone-card {
+  border: 1px solid rgba(111, 151, 184, .22);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .62);
+  box-shadow: 0 18px 40px rgba(23, 50, 74, .09);
+  backdrop-filter: blur(12px) saturate(1.08);
+}
+
+.context-zone {
+  padding: 20px 22px;
+  background: rgba(255, 247, 216, .60);
+  box-shadow: 0 16px 34px rgba(188, 148, 36, .08);
+}
+
+.teacher-zone {
+  padding: 18px 20px;
+  border-color: rgba(191, 162, 224, .24);
+  background: rgba(247, 241, 255, .48);
+  box-shadow: 0 12px 28px rgba(98, 63, 142, .06);
+}
+
+.action-zone {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  padding: 16px 18px 18px;
+  border-color: rgba(76, 123, 161, .22);
+  background: rgba(255, 255, 255, .76);
+  box-shadow: 0 24px 56px rgba(23, 50, 74, .13);
+}
+
+.action-zone .lesson-grid,
+.action-zone .circuit-lesson,
+.action-zone .budget-layout,
+.action-zone .builder-layout,
+.action-zone .material-board {
+  min-height: 0;
+  height: 100%;
+}
+
+.action-zone .interaction-card,
+.action-zone .control-card {
+  min-height: 0;
+}
+
+.action-zone .circuit-board {
+  min-height: clamp(230px, 32vh, 330px);
+}
+
+.action-zone .circuit-svg {
+  min-height: clamp(230px, 32vh, 330px);
+}
+
+.zone-label {
+  margin-bottom: 14px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  font-size: clamp(17px, 1.2vw, 22px);
+  letter-spacing: 0;
+}
+
+.zone-label span {
+  font-size: .82em;
+}
+
+.zone-card p {
+  font-size: clamp(19px, 1.25vw, 25px);
+  line-height: 1.68;
+}
+
+.action-zone .zone-label {
+  width: 100%;
+  margin-bottom: 10px;
+  font-size: clamp(21px, 1.55vw, 30px);
+}
+
+.action-goal {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-size: clamp(22px, 1.65vw, 31px);
+  line-height: 1.42;
+}
+
+.interaction-zone {
+  font-size: clamp(19px, 1.32vw, 27px);
+  line-height: 1.6;
+}
+
+.interaction-zone h2,
+.interaction-zone h3,
+.card-title {
+  font-weight: 950;
+}
+
+.assistant-card,
+.goal-list,
+.interaction-card,
+.control-card,
+.question-card,
+.budget-panel,
+.budget-result,
+.quote-card,
+.measure-card,
+.sum-card,
+.measure-layout > *,
+.material-board > *,
+.builder-side,
+.toolbox,
+.workbench,
+.feedback {
+  border: 1px solid rgba(133, 164, 190, .24);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 14px 30px rgba(23, 50, 74, .07);
+}
+
+.choice-btn,
+.mission-card,
+.compare-card,
+.fault-card,
+.labor-step,
+.measure-card {
+  border: 1px solid rgba(130, 170, 202, .34);
+  border-radius: 14px;
+}
+
+.status-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: stretch;
+  padding: 0 8px;
+}
+
+.status-bar {
+  width: auto;
+  min-height: 48px;
+  border: 1px solid rgba(103, 160, 198, .32);
+  border-radius: 14px;
+  background: rgba(238, 248, 255, .88);
+  box-shadow: 0 12px 28px rgba(23, 50, 74, .08);
+}
+
+.step-btn {
+  position: fixed;
+  right: clamp(30px, 3.2vw, 68px);
+  top: clamp(250px, 50vh, 560px);
+  transform: translateY(-50%);
+  min-width: 138px;
+  min-height: 66px;
+  border-radius: 18px;
+  background: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0 14px 30px rgba(23, 50, 74, .16);
+  z-index: 72;
+}
+
+.step-btn.step-complete,
+.step-btn:disabled {
+  background: rgba(217, 232, 243, .84);
+  color: rgba(23, 50, 74, .58);
+  box-shadow: 0 10px 24px rgba(23, 50, 74, .10);
+}
+
+.deck-nav {
+  bottom: 18px;
+  box-shadow: 0 16px 34px rgba(23, 50, 74, .26);
+}
+
+.classroom-character-layer {
+  z-index: 18;
+  pointer-events: none;
+}
+
+.classroom-character {
+  width: clamp(330px, 22vw, 440px);
+  max-height: 46vh;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 26px rgba(23, 50, 74, .20));
+}
+
+.classroom-character.pos-left-bottom {
+  left: clamp(-118px, -6vw, -64px);
+  bottom: clamp(110px, 13vh, 150px);
+}
+
+.classroom-character.pos-right-bottom {
+  right: clamp(-118px, -6vw, -64px);
+  bottom: clamp(110px, 13vh, 150px);
+}
+
+.classroom-character.pos-left-middle {
+  left: clamp(-130px, -7vw, -72px);
+}
+
+.classroom-character.pos-right-middle {
+  right: clamp(-130px, -7vw, -72px);
+}
+
+.classroom-character.pos-action-empty-right {
+  right: clamp(168px, 10vw, 240px);
+  bottom: clamp(132px, 16vh, 190px);
+}
+
+.classroom-character.pos-action-empty-left {
+  left: clamp(760px, 52vw, 1080px);
+  bottom: clamp(128px, 15vh, 180px);
+}
+
+.classroom-character.pos-action-empty-center {
+  left: clamp(900px, 62vw, 1260px);
+  bottom: clamp(130px, 16vh, 190px);
+}
+
+@media (max-width: 900px) {
+  .slide {
+    padding: 16px 18px 92px;
+  }
+
+  .section-badge {
+    min-width: 160px;
+    font-size: 20px;
+  }
+
+  .slide[data-page-type="lesson"] .pdv2-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .action-zone {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .status-bar {
+    width: auto;
+  }
+}
+
+.video-player-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: grid;
+  background: #071827;
+}
+
+.video-expand-btn {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  z-index: 12;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 214, 107, .96);
+  color: #17324a;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .18);
+}
+
+.video-modal-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 36px;
+  background: rgba(3, 14, 26, .78);
+  backdrop-filter: blur(10px);
+}
+
+.video-modal-panel {
+  position: relative;
+  width: min(92vw, 1440px);
+  height: min(82vh, 820px);
+  display: grid;
+  place-items: center;
+  border-radius: 24px;
+  background: #06131f;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .46);
+  overflow: hidden;
+}
+
+.video-modal-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #06131f;
+}
+
+.video-modal-close {
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .92);
+  color: #17324a;
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, .22);
+}
+
+@media (max-width: 900px) {
+  .video-modal-layer {
+    padding: 14px;
+  }
+
+  .video-modal-panel {
+    width: 96vw;
+    height: 76vh;
+    border-radius: 16px;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <main class="deck-shell" aria-label="巧布并联照明路课件">
+    <section id="slide-stage" class="slide-stage" aria-live="polite"></section>
+    <nav class="deck-nav" aria-label="PPT 翻页控制">
+      <button id="prev-slide" data-testid="prev-slide" class="nav-btn" type="button" aria-label="上一页">‹</button>
+      <div class="page-meter" aria-label="页码">
+        <span id="page-now" data-testid="page-now">1</span><span>/</span><span id="page-total" data-testid="page-total">17</span>
+      </div>
+      <button id="next-slide" data-testid="next-slide" class="nav-btn" type="button" aria-label="下一页">›</button>
+    </nav>
+  </main>
+
+  <script>
+const OSS_ASSET_BASE = "https://lanselotyichenmashiro.oss-cn-shanghai.aliyuncs.com/PPT1/assets/";
+
+function assetUrl(path) {
+  return OSS_ASSET_BASE + String(path || "").replace(/^\/+/, "");
+}
+
+window.QiaobuSlides = [
+  {
+    id: "cover",
+    type: "home",
+    section: "科学 x 数学 x 劳动",
+    title: "巧布并联照明路，精算小数加减账",
+    school: "祁连路小学",
+    teacher: "刘晋媛",
+    courseType: "公开课 / 实验课 / 赛课",
+    subjects: "科学 / 数学 / 劳动融合"
+  },
+  {
+    id: "intro-video",
+    type: "rescue",
+    section: "1 激趣导入",
+    title: "情境导入：AI 小智电量低于 5%",
+    task: "点击开始救援，观察电量危机如何转化成照明电路任务。",
+    feedback: "每一厘米电线、每一个亮起的灯泡，都藏着数学的精确和科学的奥秘。",
+    videoTitle: "情境导入视频",
+    path: "https://lanselotyichenmashiro.oss-cn-shanghai.aliyuncs.com/PPT1/assets/videos/intro.mp4"
+  },
+  {
+    id: "mission",
+    type: "mission",
+    section: "任务发布",
+    title: "任务发布：今天我们要完成一项小工程",
+    task: "明确科学任务、数学任务和劳动实践任务，不让任何一个环节掉队。",
+    feedback: "成功条件：电路连接正确 + 预算计算正确 + 流程检测完成。",
+    cards: [
+      ["科学", "设计并联照明电路，让客厅与卧室互不干扰。"],
+      ["数学", "用小数加减计算灯泡、开关和导线预算。"],
+      ["劳动", "空间定位、精准作业、逻辑布线、实效检测。"],
+      ["表达", "像小工程师一样说明设计理由和成本变化。"]
+    ]
+  },
+  {
+    id: "prediction",
+    type: "choice",
+    section: "生活问题预测",
+    title: "卧室关灯，客厅灯也熄灭，合理吗？",
+    task: "选择你的判断，并说出理由。",
+    question: "如果客厅有人看书，卧室的人想睡觉关灯，客厅灯也熄灭了，这样的照明设计合理吗？",
+    feedback: "预测不是猜答案，而是把生活经验变成可验证的问题。",
+    choices: [
+      { text: "合理，两个房间一起控制更省事。", ok: false, feedback: "这会让两个房间互相影响，不适合家庭分区照明。" },
+      { text: "不合理，两个房间应该可以分别控制。", ok: true, feedback: "对。家庭照明要让每个房间拥有自己的“选择权”。" }
+    ]
+  },
+  {
+    id: "series-demo",
+    type: "series",
+    section: "2 科学实验场",
+    title: "方案 A：串联电路，一损俱损",
+    task: "点击总开关，再模拟任一路径断开，观察两个灯泡是否同时受影响。",
+    feedback: "串联只有一条通路：电池、开关、灯泡 1、灯泡 2 排成一队。"
+  },
+  {
+    id: "series-feedback",
+    type: "quickCheck",
+    section: "串联现象反馈",
+    title: "为什么串联不适合两个房间？",
+    task: "先写出你的解释，再点击查看课堂反馈。",
+    question: "拧下一个灯泡后，为什么另一盏灯也会熄灭？",
+    answer: "因为串联电路只有一条完整通路，任意一处断开，电流就无法回到电池负极，整条电路受影响。",
+    feedback: "请用“通路”“断开”“电流”三个词表达。"
+  },
+  {
+    id: "parallel-intro",
+    type: "parallel",
+    section: "方案 B：并联实验",
+    title: "并联电路实验：每盏灯拥有专属路线",
+    task: "分别点击客厅开关和卧室开关，再断开一条支路，验证另一条支路是否仍能工作。",
+    feedback: "并联电路共用电池，但不同支路相对独立。"
+  },
+  {
+    id: "principle-video",
+    type: "principle",
+    section: "原理深化",
+    title: "电流从正极出发，沿闭合支路回到负极",
+    task: "点击演示按钮，观察只有闭合支路显示流动电流。",
+    feedback: "不亮的支路不得显示流动电流，这是判断电路图是否真实联动的关键。",
+    videoTitle: "原理讲解视频",
+    path: "https://lanselotyichenmashiro.oss-cn-shanghai.aliyuncs.com/PPT1/assets/videos/principle.mp4"
+  },
+  {
+    id: "compare",
+    type: "compare",
+    section: "串并联对比总结",
+    title: "对比分析：把结构、现象和家庭照明需求对应起来",
+    task: "点击对比项，判断哪种方案适合模型房屋。",
+    feedback: "家庭装修优先使用并联电路，因为各房间照明互不干扰。"
+  },
+  {
+    id: "builder",
+    type: "builder",
+    section: "并联电路拖拽连接",
+    title: "把元件吸附到模型房屋接口",
+    task: "拖拽电池、导线、灯泡和开关到对应插槽，点击检查连接。",
+    feedback: "元件不是装饰。吸附后的连接关系会参与自动判断。"
+  },
+  {
+    id: "dual-switch",
+    type: "dual",
+    section: "双开关双灯互动",
+    title: "电路测试：模型房屋分别控制",
+    task: "在房屋平面图中分别点击两个开关，验证控制关系。",
+    feedback: "客厅开关只控制客厅灯，卧室开关只控制卧室灯。"
+  },
+  {
+    id: "fault",
+    type: "fault",
+    section: "电路故障挑战",
+    title: "故障诊断：失败电路错在哪里？",
+    task: "选择一个故障方案，读懂具体错误原因，再回到搭建页修正。",
+    feedback: "错误反馈必须说清楚：回路、支路、开关控制关系分别哪里不对。"
+  },
+  {
+    id: "measurement",
+    type: "measurement",
+    section: "3 数学原理探秘",
+    title: "材料选择与精准测量：零点几厘米也有意义",
+    task: "读出三段导线长度，并合计模型屋需要的走线。",
+    feedback: "0.5 厘米是 5 毫米，0.8 厘米是 8 毫米。工程里忽视小数可能导致电线拉不直或短路。",
+    lengths: [
+      ["客厅主线", 15.5],
+      ["卧室支线", 22.8],
+      ["开关引线", 8.7]
+    ]
+  },
+  {
+    id: "budget-calc",
+    type: "budget",
+    section: "成本计算器",
+    title: "预算清单：小数点不能偏移",
+    task: "根据报价单选择材料数量，输入总价，系统判断小数加减是否正确。",
+    feedback: "本页总价应服务电路材料采购预算，不做孤立口算题。"
+  },
+  {
+    id: "budget-opt",
+    type: "optimize",
+    section: "预算优化挑战",
+    title: "预算优化：18.00 元内完成可用方案",
+    task: "尝试调整材料，系统同时判断电路功能和预算上限。",
+    feedback: "只省钱但电路不可用，不能算成功；电路可用但超支，也不是最优方案。"
+  },
+  {
+    id: "labor",
+    type: "labor",
+    section: "4 劳动实践",
+    title: "课堂表达：从图纸走向模型四步展示",
+    task: "按顺序点亮四张流程卡，完成课堂展示准备。",
+    feedback: "空间定位、精准作业、逻辑布线、实效检测，每一步都影响安全和成本。"
+  },
+  {
+    id: "end",
+    type: "end",
+    section: "END",
+    title: "谢谢观看",
+    subtitle: "巧布并联照明路，精算小数加减账"
+  }
+];
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"]/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;"
+  })[char]);
+}
+
+function createLessonVideoHTML(type, src) {
+  return `
+    <div class="video-player-shell" data-video-shell="${escapeHtml(type)}">
+      <video
+        class="lesson-video"
+        data-lesson-video="${escapeHtml(type)}"
+        src="${escapeHtml(src)}"
+        controls
+        preload="metadata"
+        playsinline
+      >
+        当前浏览器不支持视频播放。
+      </video>
+      <button class="video-expand-btn" type="button" data-expand-video="${escapeHtml(type)}">
+        放大观看
+      </button>
+    </div>`;
+}
+
+function initLessonVideos(scope = document) {
+  const videos = Array.from(scope.querySelectorAll(".lesson-video"));
+
+  videos.forEach(video => {
+    video.controls = true;
+
+    video.addEventListener("play", () => {
+      document.querySelectorAll(".lesson-video, .video-modal-player").forEach(other => {
+        if (other !== video) other.pause();
+      });
+    });
+  });
+
+  scope.querySelectorAll("[data-expand-video]").forEach(button => {
+    button.addEventListener("click", () => {
+      const type = button.dataset.expandVideo;
+      const sourceVideo = scope.querySelector(`[data-lesson-video="${type}"]`);
+      if (!sourceVideo) return;
+      openVideoModal(sourceVideo);
+    });
+  });
+}
+
+function openVideoModal(sourceVideo) {
+  document.querySelector(".video-modal-layer")?.remove();
+
+  const currentTime = sourceVideo.currentTime || 0;
+  const wasPlaying = !sourceVideo.paused && !sourceVideo.ended;
+
+  document.querySelectorAll(".lesson-video, .video-modal-player").forEach(video => {
+    if (video !== sourceVideo) video.pause();
+  });
+  sourceVideo.pause();
+
+  const layer = document.createElement("div");
+  layer.className = "video-modal-layer";
+  layer.innerHTML = `
+    <div class="video-modal-panel" role="dialog" aria-modal="true" aria-label="放大观看视频">
+      <button class="video-modal-close" type="button" aria-label="关闭放大视频">×</button>
+      <video
+        class="video-modal-player"
+        src="${escapeHtml(sourceVideo.currentSrc || sourceVideo.src)}"
+        controls
+        preload="metadata"
+        playsinline
+      >
+        当前浏览器不支持视频播放。
+      </video>
+    </div>`;
+
+  document.body.appendChild(layer);
+
+  const modalVideo = layer.querySelector(".video-modal-player");
+  const closeBtn = layer.querySelector(".video-modal-close");
+
+  modalVideo.addEventListener("loadedmetadata", () => {
+    try {
+      modalVideo.currentTime = currentTime;
+    } catch (error) {}
+    if (wasPlaying) {
+      modalVideo.play().catch(() => {});
+    }
+  });
+
+  let closed = false;
+  const syncAndClose = () => {
+    if (closed) return;
+    closed = true;
+    try {
+      sourceVideo.currentTime = modalVideo.currentTime || 0;
+    } catch (error) {}
+    sourceVideo.pause();
+    layer.remove();
+    document.removeEventListener("keydown", escClose);
+  };
+
+  closeBtn.addEventListener("click", syncAndClose);
+
+  layer.addEventListener("click", event => {
+    if (event.target === layer) syncAndClose();
+  });
+
+  const escClose = event => {
+    if (event.key === "Escape" && document.body.contains(layer)) {
+      syncAndClose();
+    }
+  };
+  document.addEventListener("keydown", escClose);
+}
+
+(function () {
+  const defaultCircuitState = {
+    batteryConnected: true,
+    livingRoomBranchClosed: true,
+    bedroomBranchClosed: true,
+    livingRoomSwitchOn: false,
+    bedroomSwitchOn: false,
+    livingRoomBulbOn: false,
+    bedroomBulbOn: false,
+    seriesSwitchOn: false,
+    seriesPathClosed: true,
+    currentPaths: [],
+    errors: []
+  };
+
+  let state = { ...defaultCircuitState };
+
+  function pageId() {
+    return window.QiaoBuState?.currentPage || 1;
+  }
+
+  function savedState() {
+    return window.QiaoBuState?.circuitState?.[pageId()] || null;
+  }
+
+  function resetStateForPage(overrides = {}) {
+    state = { ...defaultCircuitState, ...(savedState() || {}), ...overrides };
+    delete state.message;
+    delete state.error;
+    return state;
+  }
+
+  function saveCircuitState(message = "") {
+    const error = state.errors?.[0] || "";
+    if (window.QiaoBuState?.circuitState) {
+      window.QiaoBuState.circuitState[pageId()] = { ...state, message, error };
+    }
+    window.updateStatus?.(pageId());
+  }
+
+  function resetState(overrides = {}) {
+    state = { ...defaultCircuitState, ...overrides };
+    return state;
+  }
+
+  function calculateSeries(input = state) {
+    const next = { ...input, errors: [], currentPaths: [] };
+    const complete = Boolean(next.batteryConnected && next.seriesSwitchOn && next.seriesPathClosed);
+    next.livingRoomBulbOn = complete;
+    next.bedroomBulbOn = complete;
+    if (complete) {
+      next.currentPaths = ["series-main"];
+    } else if (!next.batteryConnected) {
+      next.errors.push("电池未接入完整回路。");
+    } else if (!next.seriesSwitchOn) {
+      next.errors.push("总开关断开，电流不能形成闭合回路。");
+    } else if (!next.seriesPathClosed) {
+      next.errors.push("任一路径断开，整条电路受影响。");
+    }
+    return next;
+  }
+
+  function calculateParallel(input = state) {
+    const next = { ...input, errors: [], currentPaths: [] };
+    next.livingRoomBulbOn = Boolean(next.batteryConnected && next.livingRoomBranchClosed && next.livingRoomSwitchOn);
+    next.bedroomBulbOn = Boolean(next.batteryConnected && next.bedroomBranchClosed && next.bedroomSwitchOn);
+    if (next.livingRoomBulbOn) next.currentPaths.push("living");
+    if (next.bedroomBulbOn) next.currentPaths.push("bedroom");
+    if (!next.batteryConnected) next.errors.push("电池未接入完整回路。");
+    if (!next.livingRoomBranchClosed) next.errors.push("客厅支路没有闭合。");
+    if (!next.bedroomBranchClosed) next.errors.push("卧室支路没有闭合。");
+    return next;
+  }
+
+  function drawSeries(host) {
+    resetStateForPage();
+    host.innerHTML = `
+      <div class="lesson-grid circuit-lesson">
+        <section class="interaction-card">
+          <div class="card-title">互动区：串联电路</div>
+          <div class="circuit-board" data-circuit="series">${seriesSvg()}</div>
+        </section>
+        <section class="control-card">
+          <div class="card-title">操作目标</div>
+          <p>闭合总开关，两只灯泡同时亮；断开开关或任一路径，两只灯泡同时灭。</p>
+          <div class="touch-row">
+            <button class="action-btn" data-testid="series-switch" data-series-switch type="button">闭合 / 断开总开关</button>
+            <button class="action-btn danger" data-testid="series-break" data-series-break type="button">模拟任一路径断开</button>
+            <button class="action-btn secondary" data-series-reset type="button">重置</button>
+          </div>
+        </section>
+      </div>`;
+    bindSeries(host);
+    renderSeries(host);
+  }
+
+  function bindSeries(host) {
+    host.querySelector("[data-series-switch]").addEventListener("click", () => {
+      state.seriesSwitchOn = !state.seriesSwitchOn;
+      renderSeries(host);
+    });
+    host.querySelector("[data-series-break]").addEventListener("click", () => {
+      state.seriesPathClosed = !state.seriesPathClosed;
+      renderSeries(host);
+    });
+    host.querySelector("[data-series-reset]").addEventListener("click", () => {
+      resetState();
+      if (window.QiaoBuState?.circuitState) delete window.QiaoBuState.circuitState[pageId()];
+      renderSeries(host);
+    });
+  }
+
+  function renderSeries(host) {
+    state = calculateSeries(state);
+    host.querySelectorAll("[data-series-current]").forEach(path => path.classList.toggle("on", state.currentPaths.includes("series-main")));
+    host.querySelectorAll(".series-bulb").forEach(bulb => bulb.classList.toggle("bulb-on", state.livingRoomBulbOn));
+    host.querySelector("[data-series-switch-line]").classList.toggle("switch-open", !state.seriesSwitchOn);
+    host.querySelector("[data-series-break-mark]").classList.toggle("break-on", !state.seriesPathClosed);
+    if (state.livingRoomBulbOn && state.bedroomBulbOn) {
+      setFeedback("开关闭合且路径完整，两只灯泡同时亮，电流沿唯一通路从正极回到负极。");
+    } else if (!state.seriesPathClosed) {
+      setFeedback("任一路径断开，整条电路受影响，两只灯泡都熄灭。");
+    } else if (!state.seriesSwitchOn) {
+      setFeedback("开关断开，电路没有闭合，两个灯泡都不亮。");
+    } else {
+      setFeedback(state.errors.join(" "));
+    }
+  }
+
+  function drawParallel(host, options = {}) {
+    resetStateForPage();
+    const dual = options.mode === "dual";
+    host.innerHTML = `
+      <div class="lesson-grid circuit-lesson ${dual ? "house-mode" : ""}">
+        <section class="interaction-card">
+          <div class="card-title">${dual ? "互动区：模型房屋双开关" : "互动区：并联电路"}</div>
+          ${dual ? houseBackdrop() : ""}
+          <div class="circuit-board ${dual ? "house-circuit-board" : ""}" data-circuit="parallel">${parallelSvg(dual)}</div>
+        </section>
+        <section class="control-card">
+          <div class="card-title">操作目标</div>
+          <p>分别控制客厅灯和卧室灯。断开一个支路，另一个支路仍可在开关闭合时工作。</p>
+          <div class="touch-row">
+            <button class="action-btn" data-testid="living-switch" data-living-switch type="button">客厅开关</button>
+            <button class="action-btn" data-testid="bedroom-switch" data-bedroom-switch type="button">卧室开关</button>
+            <button class="action-btn danger" data-testid="living-branch-break" data-living-branch type="button">断开客厅支路</button>
+            <button class="action-btn danger" data-bedroom-branch type="button">断开卧室支路</button>
+            <button class="action-btn secondary" data-parallel-reset type="button">重置</button>
+          </div>
+        </section>
+      </div>`;
+    bindParallel(host);
+    renderParallel(host);
+  }
+
+  function bindParallel(host) {
+    host.querySelector("[data-living-switch]").addEventListener("click", () => {
+      state.livingRoomSwitchOn = !state.livingRoomSwitchOn;
+      renderParallel(host);
+    });
+    host.querySelector("[data-bedroom-switch]").addEventListener("click", () => {
+      state.bedroomSwitchOn = !state.bedroomSwitchOn;
+      renderParallel(host);
+    });
+    host.querySelector("[data-living-branch]")?.addEventListener("click", () => {
+      state.livingRoomBranchClosed = !state.livingRoomBranchClosed;
+      renderParallel(host);
+    });
+    host.querySelector("[data-bedroom-branch]")?.addEventListener("click", () => {
+      state.bedroomBranchClosed = !state.bedroomBranchClosed;
+      renderParallel(host);
+    });
+    host.querySelector("[data-parallel-reset]")?.addEventListener("click", () => {
+      resetState();
+      if (window.QiaoBuState?.circuitState) delete window.QiaoBuState.circuitState[pageId()];
+      renderParallel(host);
+    });
+  }
+
+  function renderParallel(host) {
+    state = calculateParallel(state);
+    host.querySelector("[data-testid='parallel-living-bulb']").classList.toggle("bulb-on", state.livingRoomBulbOn);
+    host.querySelector("[data-testid='parallel-bedroom-bulb']").classList.toggle("bulb-on", state.bedroomBulbOn);
+    host.querySelector("[data-living-current]").classList.toggle("on", state.currentPaths.includes("living"));
+    host.querySelector("[data-bedroom-current]").classList.toggle("on", state.currentPaths.includes("bedroom"));
+    host.querySelector("[data-living-switch-line]").classList.toggle("switch-open", !state.livingRoomSwitchOn);
+    host.querySelector("[data-bedroom-switch-line]").classList.toggle("switch-open", !state.bedroomSwitchOn);
+    host.querySelector("[data-living-break-mark]").classList.toggle("break-on", !state.livingRoomBranchClosed);
+    host.querySelector("[data-bedroom-break-mark]").classList.toggle("break-on", !state.bedroomBranchClosed);
+    const lit = [];
+    if (state.livingRoomBulbOn) lit.push("客厅灯");
+    if (state.bedroomBulbOn) lit.push("卧室灯");
+    if (lit.length) {
+      setFeedback(`${lit.join("、")}正在发光。只有闭合支路显示流动电流，另一条支路不被影响。`);
+    } else if (state.errors.length) {
+      setFeedback(state.errors.join(" "));
+    } else {
+      setFeedback("两个开关都未闭合，灯泡暂时不亮，导线上不显示流动电流。");
+    }
+  }
+
+  function drawPrinciple(host) {
+    resetStateForPage({ livingRoomSwitchOn: true, bedroomSwitchOn: false });
+    host.innerHTML = `
+      <div class="lesson-grid principle-video-layout">
+        <section class="interaction-card">
+          <div class="video-box real-video-box">
+            ${createLessonVideoHTML("principle", assetUrl("videos/principle.mp4"))}
+          </div>
+        </section>
+        <section class="control-card">
+          <div class="card-title">电流流向演示</div>
+          <div class="mini-circuit">${parallelSvg(false)}</div>
+          <div class="touch-row">
+            <button class="action-btn" data-living-switch type="button">切换客厅支路</button>
+            <button class="action-btn" data-bedroom-switch type="button">切换卧室支路</button>
+          </div>
+        </section>
+      </div>`;
+    bindParallel(host);
+    renderParallel(host);
+    initLessonVideos(host);
+  }
+
+  function setFeedback(text) {
+    saveCircuitState(text);
+  }
+
+  function houseBackdrop() {
+    return `<div class="house-plan" aria-hidden="true">
+      <div class="house-room living-room">客厅<br><small>看书区</small></div>
+      <div class="house-room bedroom-room">卧室<br><small>休息区</small></div>
+    </div>`;
+  }
+
+  function seriesSvg() {
+    return `<svg class="circuit-svg" viewBox="0 0 760 380" role="img" aria-label="串联电路示意图">
+      <rect class="battery" x="42" y="142" width="88" height="96" rx="10"></rect>
+      <text class="label" x="54" y="132">电池组</text><text class="pole plus" x="65" y="180">+</text><text class="pole minus" x="105" y="224">-</text>
+      <path class="wire" d="M130 170 H242 M316 170 H452 M526 170 H660 V270 H320 M206 270 H90 V238"></path>
+      <path class="wire" d="M90 142 V170"></path>
+      <path class="current" data-series-current d="M130 170 H242 M316 170 H452 M526 170 H660 V270 H320 M206 270 H90 V238"></path>
+      <g class="series-bulb" data-testid="series-living-bulb" transform="translate(280 170)">
+        <circle class="bulb-glass" r="36"></circle><path class="filament" d="M-14 6 C-4 -8 4 20 14 6"></path><text class="label" x="-32" y="72">客厅灯</text>
+      </g>
+      <g class="series-bulb" data-testid="series-bedroom-bulb" transform="translate(490 170)">
+        <circle class="bulb-glass" r="36"></circle><path class="filament" d="M-14 6 C-4 -8 4 20 14 6"></path><text class="label" x="-32" y="72">卧室灯</text>
+      </g>
+      <line class="switch-line" x1="208" y1="270" x2="242" y2="270"></line>
+      <line class="switch-line" data-series-switch-line x1="242" y1="270" x2="318" y2="270"></line>
+      <text class="label" x="220" y="320">总开关</text>
+      <g data-series-break-mark class="break-mark" transform="translate(610 270)">
+        <line x1="-18" y1="-18" x2="18" y2="18"></line><line x1="18" y1="-18" x2="-18" y2="18"></line>
+      </g>
+    </svg>`;
+  }
+
+  function parallelSvg(compact) {
+    const viewBox = compact ? "0 0 760 420" : "0 0 760 390";
+    return `<svg class="circuit-svg" viewBox="${viewBox}" role="img" aria-label="并联电路示意图">
+      <rect class="battery" x="42" y="150" width="88" height="100" rx="10"></rect>
+      <text class="label" x="55" y="140">电池组</text><text class="pole plus" x="65" y="188">+</text><text class="pole minus" x="105" y="236">-</text>
+      <path class="wire" d="M130 176 H205 V92 H658 V176"></path>
+      <path class="wire" d="M130 226 H205 V314 H658 V226"></path>
+      <path class="wire" d="M205 176 H658"></path>
+      <path class="wire" d="M205 226 H658"></path>
+      <path class="current" data-living-current d="M130 176 H205 V92 H658 V176 H130"></path>
+      <path class="current" data-bedroom-current d="M130 226 H205 V314 H658 V226 H130"></path>
+      <g data-testid="parallel-living-bulb" transform="translate(560 92)">
+        <circle class="bulb-glass" r="34"></circle><path class="filament" d="M-13 5 C-4 -8 4 18 13 5"></path><text class="label" x="-32" y="-48">客厅灯</text>
+      </g>
+      <g data-testid="parallel-bedroom-bulb" transform="translate(560 314)">
+        <circle class="bulb-glass" r="34"></circle><path class="filament" d="M-13 5 C-4 -8 4 18 13 5"></path><text class="label" x="-32" y="66">卧室灯</text>
+      </g>
+      <line class="switch-line" x1="282" y1="92" x2="330" y2="92"></line>
+      <line class="switch-line" data-living-switch-line x1="330" y1="92" x2="396" y2="92"></line>
+      <line class="switch-line" x1="282" y1="314" x2="330" y2="314"></line>
+      <line class="switch-line" data-bedroom-switch-line x1="330" y1="314" x2="396" y2="314"></line>
+      <text class="label" x="286" y="62">客厅开关</text><text class="label" x="286" y="366">卧室开关</text>
+      <g data-living-break-mark class="break-mark" transform="translate(455 92)"><line x1="-18" y1="-18" x2="18" y2="18"></line><line x1="18" y1="-18" x2="-18" y2="18"></line></g>
+      <g data-bedroom-break-mark class="break-mark" transform="translate(455 314)"><line x1="-18" y1="-18" x2="18" y2="18"></line><line x1="18" y1="-18" x2="-18" y2="18"></line></g>
+    </svg>`;
+  }
+
+  window.QiaobuCircuit = {
+    drawSeries,
+    drawParallel,
+    drawPrinciple,
+    calculateSeries,
+    calculateParallel,
+    resetState,
+    getState: () => ({ ...state })
+  };
+})();
+
+
+(function () {
+  const parts = [
+    { id: "battery", label: "电池组", icon: "＋−" },
+    { id: "living-bulb", label: "客厅灯泡", icon: "灯" },
+    { id: "bedroom-bulb", label: "卧室灯泡", icon: "灯" },
+    { id: "living-switch", label: "客厅开关", icon: "⏻" },
+    { id: "bedroom-switch", label: "卧室开关", icon: "⏻" },
+    { id: "main-wire", label: "主回路线", icon: "━" },
+    { id: "living-wire", label: "客厅支路导线", icon: "━" },
+    { id: "bedroom-wire", label: "卧室支路导线", icon: "━" }
+  ];
+
+  const slots = [
+    { id: "battery", label: "电池接口", x: 22, y: 190, accepts: "battery", branch: "main" },
+    { id: "main-wire", label: "主回路线", x: 295, y: 48, accepts: "main-wire", branch: "main" },
+    { id: "living-bulb", label: "客厅灯位", x: 175, y: 142, accepts: "living-bulb", branch: "living" },
+    { id: "living-switch", label: "客厅开关位", x: 175, y: 258, accepts: "living-switch", branch: "living" },
+    { id: "living-wire", label: "客厅支路线", x: 338, y: 190, accepts: "living-wire", branch: "living" },
+    { id: "bedroom-bulb", label: "卧室灯位", x: 550, y: 142, accepts: "bedroom-bulb", branch: "bedroom" },
+    { id: "bedroom-switch", label: "卧室开关位", x: 550, y: 258, accepts: "bedroom-switch", branch: "bedroom" },
+    { id: "bedroom-wire", label: "卧室支路线", x: 438, y: 314, accepts: "bedroom-wire", branch: "bedroom" }
+  ];
+
+  let placements = {};
+
+  function pageId() {
+    return window.QiaoBuState?.currentPage || 1;
+  }
+
+  function saveDragState(result = null) {
+    if (!window.QiaoBuState?.dragState) return;
+    const previous = window.QiaoBuState.dragState[pageId()] || {};
+    window.QiaoBuState.dragState[pageId()] = {
+      ...previous,
+      placements: { ...placements },
+      message: result ? result.message || result.errors?.join(" ") || "等待操作..." : previous.message || "等待操作...",
+      error: result?.ok === false ? result.errors?.[0] || result.message || "" : ""
+    };
+    window.updateStatus?.(pageId());
+  }
+
+  function renderBuilder(host) {
+    placements = { ...(window.QiaoBuState?.dragState?.[pageId()]?.placements || {}) };
+    host.innerHTML = `
+      <div class="builder-layout" data-drag-drop-module>
+        <section class="toolbox">
+          <div class="card-title">元件库</div>
+          ${parts.map(part => `<div class="part" draggable="true" data-part="${part.id}" data-testid="part-${part.id}">
+            <span>${part.icon}</span><strong>${part.label}</strong>
+          </div>`).join("")}
+        </section>
+        <section class="workbench" data-workbench>
+          <div class="house-outline">
+            <div class="room living"><span>客厅</span></div>
+            <div class="room bedroom"><span>卧室</span></div>
+          </div>
+          ${slots.map(slot => `<div class="slot" data-slot="${slot.id}" data-testid="slot-${slot.id}" style="left:${slot.x}px;top:${slot.y}px">${slot.label}</div>`).join("")}
+          <svg class="bench-lines" viewBox="0 0 760 390" aria-hidden="true">
+            <path class="bench-wire living-wire" d="M78 215 H235 V166 H610"></path>
+            <path class="bench-wire bedroom-wire" d="M78 232 H235 V338 H610"></path>
+            <path class="bench-wire main-wire" d="M78 198 H660 V360 H78"></path>
+          </svg>
+        </section>
+        <section class="builder-side">
+          <p>先故意放错也可以，系统会指出具体原因。</p>
+          <div class="touch-row">
+            <button class="action-btn" data-testid="check-build" data-check-build type="button">检查连接</button>
+            <button class="action-btn secondary" data-reset-build type="button">重置</button>
+          </div>
+        </section>
+      </div>`;
+    restoreSlots(host);
+    bind(host);
+    saveDragState({ ok: null, message: window.QiaoBuState?.dragState?.[pageId()]?.message || "把元件拖到虚线插槽附近，会自动吸附并参与判断。" });
+  }
+
+  function bind(host) {
+    const workbench = host.querySelector("[data-workbench]");
+    host.querySelectorAll("[data-part]").forEach(part => {
+      part.addEventListener("dragstart", event => {
+        event.dataTransfer.setData("text/plain", part.dataset.part);
+      });
+      part.addEventListener("dragend", event => {
+        document.querySelectorAll(".dropped.dragging").forEach(el => el.remove());
+        if (event.clientX || event.clientY) placeNear(host, part.dataset.part, event.clientX, event.clientY);
+      });
+      part.addEventListener("pointerdown", event => startPointerDrag(event, host, part.dataset.part, part.textContent.trim()));
+    });
+    host.querySelectorAll("[data-slot]").forEach(slot => {
+      slot.addEventListener("dragover", event => event.preventDefault());
+      slot.addEventListener("drop", event => {
+        event.preventDefault();
+        const partId = event.dataTransfer.getData("text/plain");
+        placeInSlot(host, partId, slot.dataset.slot);
+      });
+    });
+    workbench.addEventListener("dragover", event => event.preventDefault());
+    workbench.addEventListener("drop", event => {
+      event.preventDefault();
+      const partId = event.dataTransfer.getData("text/plain");
+      placeNear(host, partId, event.clientX, event.clientY);
+    });
+    host.querySelector("[data-check-build]").addEventListener("click", () => {
+      const result = checkBuild(host);
+      renderBuildFeedback(host, result);
+    });
+    host.querySelector("[data-reset-build]").addEventListener("click", () => {
+      placements = {};
+      if (window.QiaoBuState?.dragState) delete window.QiaoBuState.dragState[pageId()];
+      renderBuilder(host);
+    });
+  }
+
+  function startPointerDrag(event, host, partId, label) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const ghost = document.createElement("div");
+    ghost.className = "dropped dragging";
+    ghost.textContent = label;
+    document.body.appendChild(ghost);
+    moveGhost(ghost, event.clientX, event.clientY);
+    const move = e => moveGhost(ghost, e.clientX, e.clientY);
+    const up = e => {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      ghost.remove();
+      placeNear(host, partId, e.clientX, e.clientY);
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  }
+
+  function moveGhost(ghost, x, y) {
+    ghost.style.left = `${x - 70}px`;
+    ghost.style.top = `${y - 26}px`;
+  }
+
+  function placeNear(host, partId, clientX, clientY) {
+    const workbench = host.querySelector("[data-workbench]");
+    const rect = workbench.getBoundingClientRect();
+    let best = null;
+    let bestDistance = Infinity;
+    host.querySelectorAll("[data-slot]").forEach(slot => {
+      const s = slot.getBoundingClientRect();
+      const distance = Math.hypot(clientX - (s.left + s.width / 2), clientY - (s.top + s.height / 2));
+      if (distance < bestDistance) {
+        best = slot;
+        bestDistance = distance;
+      }
+    });
+    if (!best || bestDistance > Math.max(110, rect.width * 0.16)) {
+      renderBuildFeedback(host, { ok: false, errors: ["元件离插槽太远，没有吸附。请靠近虚线接口再松手。"] });
+      return;
+    }
+    placeInSlot(host, partId, best.dataset.slot);
+  }
+
+  function placeInSlot(host, partId, slotId) {
+    placements[slotId] = partId;
+    const slot = host.querySelector(`[data-slot="${slotId}"]`);
+    const part = parts.find(item => item.id === partId);
+    slot.classList.add("filled");
+    slot.textContent = part ? part.label : partId;
+    renderBuildFeedback(host, { ok: null, errors: ["已吸附。继续完成两个支路后点击“检查连接”。"] });
+  }
+
+  function validatePlacements(input = placements) {
+    const errors = [];
+    const livingBulbSlot = slotContaining(input, "living-bulb");
+    const bedroomBulbSlot = slotContaining(input, "bedroom-bulb");
+
+    if (input.battery !== "battery" || input["main-wire"] !== "main-wire") {
+      errors.push("电池未接入完整回路：电池组和主回路线必须同时接入。");
+    }
+
+    if (livingBulbSlot && bedroomBulbSlot) {
+      const livingBranch = branchOf(livingBulbSlot);
+      const bedroomBranch = branchOf(bedroomBulbSlot);
+      if (livingBranch === bedroomBranch) {
+        errors.push("两个灯泡在同一路径，不能独立控制。");
+      }
+    } else if (livingBulbSlot === "bedroom-bulb" || bedroomBulbSlot === "living-bulb" || input["bedroom-bulb"] === "living-bulb" || input["living-bulb"] === "bedroom-bulb") {
+      errors.push("两个灯泡在同一路径，不能独立控制。");
+    }
+
+    if (input["living-bulb"] !== "living-bulb" || input["living-switch"] !== "living-switch" || input["living-wire"] !== "living-wire") {
+      errors.push("客厅支路没有闭合：客厅灯泡、客厅开关和客厅支路导线缺一不可。");
+    }
+    if (input["bedroom-bulb"] !== "bedroom-bulb" || input["bedroom-switch"] !== "bedroom-switch" || input["bedroom-wire"] !== "bedroom-wire") {
+      errors.push("卧室支路没有闭合：卧室灯泡、卧室开关和卧室支路导线缺一不可。");
+    }
+
+    for (const slot of slots) {
+      if (input[slot.id] && input[slot.id] !== slot.accepts) {
+        errors.push(`${slot.label}放入了不匹配的元件，应放入“${labelOf(slot.accepts)}”。`);
+      }
+    }
+
+    const unique = [...new Set(errors)];
+    return {
+      ok: unique.length === 0,
+      errors: unique,
+      message: unique.length ? unique.join(" ") : "连接成功：电池、两条支路和两个开关都接入正确，并联照明可以独立控制。"
+    };
+  }
+
+  function checkBuild(host) {
+    return validatePlacements(placements);
+  }
+
+  function renderBuildFeedback(host, result) {
+    saveDragState(result);
+  }
+
+  function restoreSlots(host) {
+    Object.entries(placements).forEach(([slotId, partId]) => {
+      const slot = host.querySelector(`[data-slot="${slotId}"]`);
+      const part = parts.find(item => item.id === partId);
+      if (!slot) return;
+      slot.classList.add("filled");
+      slot.textContent = part ? part.label : partId;
+    });
+  }
+
+  function slotContaining(input, partId) {
+    return Object.keys(input).find(slotId => input[slotId] === partId);
+  }
+
+  function branchOf(slotId) {
+    return slots.find(slot => slot.id === slotId)?.branch;
+  }
+
+  function labelOf(partId) {
+    return parts.find(part => part.id === partId)?.label || partId;
+  }
+
+  window.QiaobuDragDrop = {
+    renderBuilder,
+    checkBuild,
+    validatePlacements,
+    placeInSlot: (slotId, partId) => { placements[slotId] = partId; },
+    getPlacements: () => ({ ...placements })
+  };
+})();
+
+
+(function () {
+  const budgetLimit = 18.00;
+
+  const standardMaterials = [
+    { id: "bulb", name: "节能灯泡", price: 5.50, defaultQty: 2, requiredQty: 2, purpose: "客厅、卧室各一盏" },
+    { id: "switch", name: "微型开关", price: 2.35, defaultQty: 2, requiredQty: 2, purpose: "分别控制两条支路" },
+    { id: "wire-meter", name: "导线约 1 米", price: 12.00, defaultQty: 1, requiredQty: 1, purpose: "完成主线与支路线" }
+  ];
+
+  const optimizedMaterials = [
+    { id: "battery-box", name: "电池盒", price: 3.50, defaultQty: 1, requiredQty: 1, purpose: "提供电源" },
+    { id: "wire", name: "短导线", price: 1.20, defaultQty: 3, requiredQty: 3, purpose: "主回路线、客厅支路、卧室支路" },
+    { id: "bulb", name: "小灯泡", price: 2.80, defaultQty: 2, requiredQty: 2, purpose: "两处照明" },
+    { id: "switch", name: "开关", price: 1.60, defaultQty: 2, requiredQty: 2, purpose: "双开关独立控制" },
+    { id: "base-board", name: "房屋底板", price: 4.90, defaultQty: 1, requiredQty: 1, purpose: "固定模型房屋" },
+    { id: "decor", name: "装饰材料", price: 2.30, defaultQty: 1, requiredQty: 0, purpose: "美化展示，可优化" }
+  ];
+
+  function pageId() {
+    return window.QiaoBuState?.currentPage || 1;
+  }
+
+  function pageBudgetState() {
+    if (!window.QiaoBuState?.budgetState) return {};
+    return window.QiaoBuState.budgetState[pageId()] || {};
+  }
+
+  function saveBudgetState(patch) {
+    if (!window.QiaoBuState?.budgetState) return;
+    window.QiaoBuState.budgetState[pageId()] = {
+      ...pageBudgetState(),
+      ...patch
+    };
+    window.updateStatus?.(pageId());
+  }
+
+  function renderMaterials(host) {
+    host.innerHTML = `
+      <div class="material-board" data-budget-module>
+        <div class="quote-card">
+          <div class="card-title">报价单</div>
+          ${standardMaterials.map(item => `<div class="quote-row"><strong>${item.name}</strong><span>${money(item.price)} 元</span><small>${item.purpose}</small></div>`).join("")}
+        </div>
+        <div class="measure-card">
+          <div class="card-title">测量记录</div>
+          <div class="measure-strip"><span>客厅主线</span><strong>15.5 cm</strong></div>
+          <div class="measure-strip"><span>卧室支线</span><strong>22.8 cm</strong></div>
+          <div class="measure-strip"><span>开关引线</span><strong>8.7 cm</strong></div>
+          <p>工程预算先看材料，再把相同数位对齐计算。</p>
+        </div>
+      </div>`;
+  }
+
+  function renderBudget(host, optimize = false) {
+    const materials = optimize ? optimizedMaterials : standardMaterials;
+    const saved = pageBudgetState();
+    host.innerHTML = `
+      <div class="budget-layout" data-budget-module data-budget-mode="${optimize ? "optimize" : "standard"}">
+        <section class="budget-panel">
+          <div class="card-title">${optimize ? "优化材料包" : "材料选择"}</div>
+          <table class="material-table">
+            <thead><tr><th>材料</th><th>单价</th><th>数量</th><th>用途</th></tr></thead>
+            <tbody>
+              ${materials.map(item => `<tr>
+                <td>${item.name}</td>
+                <td>${money(item.price)} 元</td>
+                <td><input class="qty-input" data-qty="${item.id}" data-testid="qty-${item.id}" type="number" min="0" max="9" value="${saved.qty?.[item.id] ?? item.defaultQty}" aria-label="${item.name}数量"></td>
+                <td>${item.purpose}</td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+          <div class="touch-row">
+            <button class="action-btn" data-update-budget type="button">生成预算清单</button>
+            ${optimize ? `<button class="action-btn secondary" data-omit-decor type="button">去掉装饰材料</button>` : ""}
+          </div>
+        </section>
+        <section class="budget-result">
+          <div class="card-title">预算清单与小数加减</div>
+          <div class="formula" data-testid="budget-formula" data-formula></div>
+          <label class="answer-line">我计算的总价
+            <input class="answer-input" data-testid="budget-answer" data-answer inputmode="decimal" value="${saved.answer || ""}" placeholder="${optimize ? "例如 17.20" : "例如 27.70"}">
+            元
+          </label>
+          <button class="action-btn" data-testid="check-budget" data-check-budget type="button">检查预算</button>
+        </section>
+      </div>`;
+    bindBudget(host, materials, optimize);
+    updateBudget(host, materials, optimize);
+  }
+
+  function bindBudget(host, materials, optimize) {
+    host.querySelector("[data-update-budget]").addEventListener("click", () => updateBudget(host, materials, optimize));
+    host.querySelector("[data-check-budget]").addEventListener("click", () => checkBudget(host, materials, optimize));
+    host.querySelectorAll("[data-qty]").forEach(input => input.addEventListener("input", () => updateBudget(host, materials, optimize)));
+    host.querySelector("[data-answer]").addEventListener("input", () => {
+      saveBudgetState({ answer: host.querySelector("[data-answer]").value.trim(), message: pageBudgetState().message || "等待操作..." });
+    });
+    const omitDecor = host.querySelector("[data-omit-decor]");
+    if (omitDecor) {
+      omitDecor.addEventListener("click", () => {
+        host.querySelector('[data-qty="decor"]').value = 0;
+        updateBudget(host, materials, optimize);
+      });
+    }
+  }
+
+  function selections(host, materials) {
+    return materials.map(item => ({
+      ...item,
+      qty: Math.max(0, Number(host.querySelector(`[data-qty="${item.id}"]`)?.value || 0))
+    }));
+  }
+
+  function totalFor(items) {
+    return Math.round(items.reduce((sum, item) => sum + item.price * item.qty, 0) * 100) / 100;
+  }
+
+  function expressionFor(items) {
+    const parts = [];
+    for (const item of items) {
+      for (let i = 0; i < item.qty; i += 1) parts.push(money(item.price));
+    }
+    return parts.length ? parts.join(" + ") : "还没有选择材料";
+  }
+
+  function updateBudget(host, materials, optimize) {
+    const items = selections(host, materials).filter(item => item.qty > 0);
+    const total = totalFor(items);
+    host.querySelector("[data-formula]").textContent = `${expressionFor(items)} = ${money(total)} 元`;
+    const qty = Object.fromEntries(selections(host, materials).map(item => [item.id, item.qty]));
+    const previous = pageBudgetState();
+    if (optimize) {
+      const usable = isFunctional(selections(host, materials), materials);
+      saveBudgetState({
+        qty,
+        total,
+        message: previous.message || (usable
+          ? `功能检查通过。预算上限 ${money(budgetLimit)} 元，当前 ${money(total)} 元。`
+          : "功能未达成：电池、导线、两只灯泡、两个开关、底板必须齐全。")
+      });
+    } else {
+      saveBudgetState({ qty, total, message: previous.message || "输入你的总价后点击检查。注意元、角、分的数位要对齐。" });
+    }
+  }
+
+  function checkBudget(host, materials, optimize) {
+    const items = selections(host, materials);
+    const expected = totalFor(items);
+    const raw = host.querySelector("[data-answer]").value.trim();
+    const answer = Number(raw);
+    if (!raw || Number.isNaN(answer) || Math.abs(answer - expected) > 0.005) {
+      saveBudgetState({
+        answer: raw,
+        expected,
+        ok: false,
+        message: `结果不一致。请检查：小数点是否对齐；是否漏加材料；位数是否错误。正确合计是 ${money(expected)} 元。`
+      });
+      return { ok: false, expected, reason: "calculation" };
+    }
+    if (optimize && !isFunctional(items, materials)) {
+      saveBudgetState({ answer: raw, expected, ok: false, message: "计算正确，但电路功能未达成，不能算成功方案。" });
+      return { ok: false, expected, reason: "function" };
+    }
+    if (optimize && expected > budgetLimit) {
+      saveBudgetState({ answer: raw, expected, ok: false, message: `计算正确，但 ${money(expected)} 元超过 ${money(budgetLimit)} 元预算上限。` });
+      return { ok: false, expected, reason: "over-budget" };
+    }
+    saveBudgetState({
+      answer: raw,
+      expected,
+      ok: true,
+      message: optimize ? "挑战成功：电路功能达成，预算没有超过 18.00 元。" : "计算正确：2 个灯泡、2 个开关和 1 米导线合计 27.70 元。"
+    });
+    return { ok: true, expected };
+  }
+
+  function isFunctional(items, materials = optimizedMaterials) {
+    const required = Object.fromEntries(materials.map(item => [item.id, item.requiredQty || 0]));
+    const selected = Object.fromEntries(items.map(item => [item.id, item.qty]));
+    return Object.entries(required).every(([id, qty]) => (selected[id] || 0) >= qty);
+  }
+
+  function money(value) {
+    return Number(value).toFixed(2);
+  }
+
+  window.QiaobuBudget = {
+    standardMaterials,
+    optimizedMaterials,
+    budgetLimit,
+    renderMaterials,
+    renderBudget,
+    totalFor,
+    isFunctional,
+    money
+  };
+})();
+
+
+(function () {
+  const stage = document.getElementById("slide-stage");
+  const pageNow = document.getElementById("page-now");
+  const pageTotal = document.getElementById("page-total");
+  const prevBtn = document.getElementById("prev-slide");
+  const nextBtn = document.getElementById("next-slide");
+  const slides = Array.isArray(window.QiaobuSlides) ? window.QiaobuSlides : [];
+
+  if (!stage || !pageNow || !pageTotal || !prevBtn || !nextBtn) {
+    document.body.insertAdjacentHTML("beforeend", `<main class="slide"><h1>课件容器加载失败</h1><p>请检查 slide-stage 与翻页按钮是否存在。</p></main>`);
+    return;
+  }
+
+  window.QiaoBuState = {
+    currentPage: 1,
+    pageIndex: 0,
+    stepIndex: 0,
+    totalPages: Math.max(1, slides.length),
+    rescueStarted: Object.create(null),
+    circuitState: Object.create(null),
+    dragState: Object.create(null),
+    budgetState: Object.create(null)
+  };
+
+  const state = window.QiaoBuState;
+
+  function updateStatus(pageId) {
+    let msg = "等待操作...";
+
+    if (state.rescueStarted[pageId]) msg = "✔ 救援已启动：咕嘎电路恢复中";
+    if (state.dragState[pageId]?.message) msg = state.dragState[pageId].message;
+    if (state.budgetState[pageId]?.message) msg = state.budgetState[pageId].message;
+    if (state.circuitState[pageId]?.message) msg = state.circuitState[pageId].message;
+    if (state.circuitState[pageId]?.error) msg = "❌ 电路错误：" + state.circuitState[pageId].error;
+
+    const el = document.getElementById("statusBar");
+    if (el) el.innerText = msg;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"]/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;"
+    })[char]);
+  }
+
+  function renderPage(pageId) {
+    state.currentPage = Math.max(1, Math.min(state.totalPages, Number(pageId) || 1));
+    state.pageIndex = state.currentPage - 1;
+    state.stepIndex = 0;
+    stage.replaceChildren();
+
+    const slide = slides[state.currentPage - 1];
+    if (!slide) renderFallbackPage("课件数据为空，请检查 QiaobuSlides。");
+    else if (slide.type === "home") renderHomePage(slide);
+    else if (slide.type === "end") renderEndPage(slide);
+    else renderLessonPage(slide);
+
+    pageNow.textContent = String(state.currentPage);
+    pageTotal.textContent = String(state.totalPages);
+    prevBtn.disabled = state.currentPage === 1;
+    nextBtn.disabled = state.currentPage === state.totalPages;
+    updateStatus(state.currentPage);
+    return state.currentPage;
+  }
+
+  function nextPage() {
+    return renderPage(state.currentPage + 1);
+  }
+
+  function prevPage() {
+    return renderPage(state.currentPage - 1);
+  }
+
+  function nextStep() {
+    if (state.currentPage < 2 || state.currentPage > 16) return state.stepIndex;
+    state.stepIndex = Math.min(3, state.stepIndex + 1);
+    const article = stage.querySelector(".slide[data-page-type='lesson']");
+    if (article) applyStepVisibility(article);
+    updateStatus(state.currentPage);
+    return state.stepIndex;
+  }
+
+  function renderFallbackPage(message) {
+    const article = document.createElement("article");
+    article.className = "slide";
+    article.innerHTML = `<section class="zone-card"><h1>加载提示</h1><p>${escapeHtml(message)}</p></section>`;
+    stage.appendChild(article);
+  }
+
+  function renderHomePage(slide) {
+    const article = document.createElement("article");
+    article.className = "slide ppt-v3-home";
+    article.dataset.pageId = String(state.currentPage);
+    article.dataset.pageType = "home";
+    article.innerHTML = `
+      <section class="ppt-cover-layer" aria-label="课程封面">
+        <p class="cover-kicker">${escapeHtml(slide.subjects || slide.section)}</p>
+        <h1 class="cover-title">
+          <span>巧布并联照明路</span>
+          <span>精算小数加减账</span>
+        </h1>
+        <p class="cover-subtitle">四年级科学融合实验课</p>
+        <div class="cover-meta">
+          <span>${escapeHtml(slide.courseType || "")}</span>
+          <span>教师：${escapeHtml(slide.teacher || "")}</span>
+          <span>${escapeHtml(slide.school || "")}</span>
+        </div>
+      </section>`;
+    stage.appendChild(article);
+  }
+
+  function renderEndPage(slide) {
+    const article = document.createElement("article");
+    article.className = "slide ppt-v3-end";
+    article.dataset.pageId = String(state.currentPage);
+    article.dataset.pageType = "end";
+    article.innerHTML = `
+      <section class="end-layer" aria-label="结束页">
+        <h1>${escapeHtml(slide.title || "谢谢观看")}</h1>
+        <p>${escapeHtml(slide.subtitle || "")}</p>
+      </section>`;
+    stage.appendChild(article);
+  }
+
+  function renderCharacterOverlay(pageId) {
+    const characterPlan = {
+      3: { role: "idea", position: "action-empty-right" },
+      4: { role: "question", position: "action-empty-right" },
+      6: { role: "question", position: "action-empty-left" },
+      9: { role: "idea", position: "action-empty-center" },
+      12: { role: "question", position: "action-empty-left" },
+      13: { role: "idea", position: "action-empty-right" },
+      16: { role: "question", position: "action-empty-center" }
+    };
+    const item = characterPlan[pageId];
+    if (!item) return "";
+    const assets = {
+      idea: {
+        src: "https://lanselotyichenmashiro.oss-cn-shanghai.aliyuncs.com/PPT1/assets/character-idea.png",
+        alt: "课堂灵感角色"
+      },
+      question: {
+        src: "https://lanselotyichenmashiro.oss-cn-shanghai.aliyuncs.com/PPT1/assets/character-question.png",
+        alt: "课堂思考角色"
+      }
+    };
+    const asset = assets[item.role];
+    return `
+      <div class="classroom-character-layer" aria-hidden="true">
+        <img class="classroom-character pos-${item.position}" src="${asset.src}" alt="${asset.alt}">
+      </div>`;
+  }
+
+  function applyStepVisibility(article) {
+    const thresholds = {
+      context: 0,
+      teacher: 1,
+      action: 2,
+      interaction: 3
+    };
+
+    article.querySelectorAll("[data-step-zone]").forEach(zone => {
+      const visible = state.stepIndex >= thresholds[zone.dataset.stepZone];
+      zone.hidden = !visible;
+      zone.classList.toggle("step-locked", !visible);
+    });
+
+    const interaction = article.querySelector("[data-slide-body]");
+    const interactionReady = state.stepIndex >= thresholds.interaction;
+    if (interaction) {
+      interaction.hidden = !interactionReady;
+      interaction.classList.toggle("step-locked", !interactionReady);
+      interaction.querySelectorAll("button, input, textarea, select").forEach(control => {
+        control.disabled = !interactionReady;
+      });
+    }
+
+    const stepButton = article.querySelector("[data-next-step]");
+    if (stepButton) {
+      const complete = state.stepIndex >= thresholds.interaction;
+      stepButton.textContent = complete ? "步骤完成" : "下一步";
+      stepButton.disabled = complete;
+      stepButton.classList.toggle("step-complete", complete);
+    }
+  }
+
+  function renderLessonPage(slide) {
+    const article = document.createElement("article");
+    article.className = "slide";
+    article.dataset.pageId = String(state.currentPage);
+    article.dataset.pageType = "lesson";
+    article.innerHTML = `
+      <header class="slide-header">
+        <div>
+          <div class="section-badge">${escapeHtml(slide.section)}</div>
+          <h1>${escapeHtml(slide.title)}</h1>
+        </div>
+        <div class="slide-number">${state.currentPage}<span>/${state.totalPages}</span></div>
+      </header>
+      <section class="pdv2-grid" aria-label="V2.5 教学分镜">
+        <section class="zone-card context-zone" data-testid="zone-context" data-step-zone="context">
+          <div class="zone-label">情境区<span>Context</span></div>
+          <p>${escapeHtml(slide.context || slide.section + "：" + slide.title)}</p>
+        </section>
+        <section class="zone-card teacher-zone" data-testid="zone-teacher" data-step-zone="teacher">
+          <div class="zone-label">教师讲解 <span>Guide</span></div>
+          <p>${escapeHtml(slide.feedback || "")}</p>
+        </section>
+        <section class="zone-card action-zone" data-testid="zone-action" data-step-zone="action">
+          <div class="zone-label">操作区<span>Action</span></div>
+          <p class="action-goal">${escapeHtml(slide.task || "")}</p>
+          <div class="interaction-zone" data-slide-body></div>
+        </section>
+      </section>
+      <div class="status-shell">
+        <div id="statusBar" class="status-bar">等待操作...</div>
+        <button class="action-btn secondary step-btn" data-testid="next-step" data-next-step type="button">下一步</button>
+      </div>
+      ${renderCharacterOverlay(state.currentPage)}`;
+    stage.appendChild(article);
+    renderInteraction(slide, article.querySelector("[data-slide-body]"));
+    article.querySelector("[data-next-step]")?.addEventListener("click", nextStep);
+    applyStepVisibility(article);
+  }
+
+  function renderInteraction(slide, body) {
+    if (!body || !slide) return;
+    const handlers = {
+      rescue: renderRescue,
+      mission: renderMission,
+      choice: renderChoice,
+      series: target => window.QiaobuCircuit.drawSeries(target),
+      quickCheck: renderQuickCheck,
+      parallel: target => window.QiaobuCircuit.drawParallel(target),
+      principle: target => window.QiaobuCircuit.drawPrinciple(target),
+      compare: renderCompare,
+      builder: target => window.QiaobuDragDrop.renderBuilder(target),
+      dual: target => window.QiaobuCircuit.drawParallel(target, { mode: "dual" }),
+      fault: renderFault,
+      measurement: renderMeasurement,
+      budget: target => window.QiaobuBudget.renderBudget(target, false),
+      optimize: target => window.QiaobuBudget.renderBudget(target, true),
+      labor: renderLabor
+    };
+    const handler = handlers[slide.type];
+    if (handler) handler(body, slide);
+  }
+
+  function renderRescue(body, slide) {
+    const videoPath = slide.path || assetUrl("videos/intro.mp4");
+    body.innerHTML = `
+      <div class="rescue-layout rescue-video-layout">
+        <div class="video-box real-video-box">
+          ${createLessonVideoHTML("intro", videoPath)}
+        </div>
+        <div class="assistant-card">
+          <div class="battery-widget">
+            <span>救援前</span><div class="battery-shell danger"><div data-rescue-battery style="width:5%"></div></div><strong data-rescue-text>5%</strong>
+          </div>
+          <button class="action-btn" data-start-rescue type="button">开始救援</button>
+        </div>
+      </div>`;
+    body.querySelector("[data-start-rescue]").addEventListener("click", () => {
+      state.rescueStarted[state.currentPage] = true;
+      body.querySelector("[data-rescue-battery]").style.width = "22%";
+      body.querySelector("[data-rescue-text]").textContent = "救援启动";
+      const video = body.querySelector('[data-lesson-video="intro"]');
+      if (video) video.play().catch(() => {});
+      updateStatus(state.currentPage);
+    });
+    initLessonVideos(body);
+  }
+
+  function renderMission(body, slide) {
+    body.innerHTML = `<div class="mission-grid">${slide.cards.map(([name, text], index) => `
+      <button class="mission-card" type="button" data-mission-card>
+        <span>任务 ${index + 1}</span><strong>${escapeHtml(name)}</strong><p>${escapeHtml(text)}</p>
+      </button>`).join("")}</div>`;
+    body.querySelectorAll("[data-mission-card]").forEach(card => {
+      card.addEventListener("click", () => {
+        card.classList.toggle("selected");
+        state.rescueStarted[state.currentPage] = true;
+        updateStatus(state.currentPage);
+      });
+    });
+  }
+
+  function renderChoice(body, slide) {
+    body.innerHTML = `
+      <div class="question-card">
+        <h2>${escapeHtml(slide.question)}</h2>
+        <div class="choice-stack">
+          ${slide.choices.map((choice, index) => `<button class="choice-btn" type="button" data-choice="${index}">${escapeHtml(choice.text)}</button>`).join("")}
+        </div>
+      </div>`;
+    body.querySelectorAll("[data-choice]").forEach(button => {
+      button.addEventListener("click", () => {
+        const choice = slide.choices[Number(button.dataset.choice)];
+        state.circuitState[state.currentPage] = {
+          ...(state.circuitState[state.currentPage] || {}),
+          message: choice.feedback,
+          error: choice.ok ? "" : choice.feedback
+        };
+        updateStatus(state.currentPage);
+      });
+    });
+  }
+
+  function renderQuickCheck(body, slide) {
+    body.innerHTML = `
+      <div class="lesson-grid">
+        <div class="question-card">
+          <h2>${escapeHtml(slide.question)}</h2>
+          <textarea class="student-answer" aria-label="学生解释" placeholder="请写下你的解释"></textarea>
+          <button class="action-btn" data-show-answer type="button">查看反馈</button>
+        </div>
+      </div>`;
+    body.querySelector("[data-show-answer]").addEventListener("click", () => {
+      state.circuitState[state.currentPage] = {
+        ...(state.circuitState[state.currentPage] || {}),
+        message: slide.answer,
+        error: ""
+      };
+      updateStatus(state.currentPage);
+    });
+  }
+
+  function renderCompare(body) {
+    body.innerHTML = `
+      <div class="compare-board">
+        <button class="compare-card" type="button" data-compare="series"><strong>串联</strong><span>一条通路，一处断开，全路受影响。</span></button>
+        <button class="compare-card recommended" type="button" data-compare="parallel"><strong>并联</strong><span>多条支路，互不干扰，适合家庭照明。</span></button>
+        <button class="compare-card" type="button" data-compare="home"><strong>家庭需求</strong><span>客厅看书、卧室休息，需要分别开关。</span></button>
+      </div>`;
+    body.querySelectorAll("[data-compare]").forEach(card => card.addEventListener("click", () => {
+      const ok = card.dataset.compare === "parallel";
+      const message = ok
+        ? "判断正确：并联结构满足双开关双灯独立控制。"
+        : "再想想：如果一处变化影响全部，就不适合家庭分区照明。";
+      state.circuitState[state.currentPage] = { ...(state.circuitState[state.currentPage] || {}), message, error: ok ? "" : message };
+      updateStatus(state.currentPage);
+    }));
+  }
+
+  function renderFault(body) {
+    const faults = {
+      battery: "电池未接入完整回路：电流无法从正极出发再回到负极。",
+      same: "两个灯泡在同一路径，不能独立控制。",
+      branch: "某一支路没有闭合：灯泡、开关或支路导线缺一不可。"
+    };
+    body.innerHTML = `
+      <div class="fault-board">
+        <button class="fault-card" data-fault="battery" type="button">电池缺口</button>
+        <button class="fault-card" data-fault="same" type="button">同一路径</button>
+        <button class="fault-card" data-fault="branch" type="button">支路断开</button>
+      </div>`;
+    body.querySelectorAll("[data-fault]").forEach(button => button.addEventListener("click", () => {
+      state.circuitState[state.currentPage] = {
+        ...(state.circuitState[state.currentPage] || {}),
+        error: faults[button.dataset.fault],
+        message: faults[button.dataset.fault]
+      };
+      updateStatus(state.currentPage);
+    }));
+  }
+
+  function renderMeasurement(body, slide) {
+    body.innerHTML = `
+      <div class="measure-layout">
+        ${slide.lengths.map(([name, value]) => `<button class="measure-card" data-length="${value}" type="button"><span>${escapeHtml(name)}</span><strong>${value.toFixed(1)} cm</strong></button>`).join("")}
+        <div class="sum-card"><strong>合计</strong><span data-length-sum>点击三段长度</span></div>
+      </div>`;
+    let total = 0;
+    const clicked = new Set();
+    body.querySelectorAll("[data-length]").forEach(card => card.addEventListener("click", () => {
+      if (!clicked.has(card)) {
+        clicked.add(card);
+        card.classList.add("selected");
+        total += Number(card.dataset.length);
+      }
+      body.querySelector("[data-length-sum]").textContent = `${total.toFixed(1)} cm`;
+      state.budgetState[state.currentPage] = {
+        ...(state.budgetState[state.currentPage] || {}),
+        message: `已测量 ${total.toFixed(1)} cm，测量值越准确，预算越不容易超标。`
+      };
+      updateStatus(state.currentPage);
+    }));
+  }
+
+  function renderLabor(body) {
+    const steps = ["空间定位：在模型上精准标出孔位。", "精准作业：精确剥除导线绝缘皮。", "逻辑布线：沿盒壁固定导线。", "实效检测：分别合上开关，看灯泡能否独立点亮。"];
+    body.innerHTML = `
+      <div class="labor-steps">${steps.map((step, index) => `<button class="labor-step" data-labor="${index}" type="button"><span>${index + 1}</span>${escapeHtml(step)}</button>`).join("")}</div>`;
+    const done = new Set();
+    body.querySelectorAll("[data-labor]").forEach(button => button.addEventListener("click", () => {
+      done.add(button.dataset.labor);
+      button.classList.add("selected");
+      state.rescueStarted[state.currentPage] = done.size === steps.length;
+      state.budgetState[state.currentPage] = {
+        ...(state.budgetState[state.currentPage] || {}),
+        message: done.size === steps.length ? "流程完成：可以进入课堂展示。" : `已完成 ${done.size}/4 步。`
+      };
+      updateStatus(state.currentPage);
+    }));
+  }
+
+  prevBtn.addEventListener("click", prevPage);
+  nextBtn.addEventListener("click", nextPage);
+  document.addEventListener("keydown", event => {
+    if (event.key === "ArrowLeft") prevPage();
+    if (event.key === "ArrowRight") nextPage();
+  });
+
+  window.updateStatus = updateStatus;
+  window.renderPage = renderPage;
+  window.nextPage = nextPage;
+  window.prevPage = prevPage;
+  window.nextStep = nextStep;
+  window.QiaobuApp = {
+    state,
+    renderPage,
+    nextPage,
+    prevPage,
+    nextStep,
+    getStepIndex: () => state.stepIndex,
+    updateStatus
+  };
+  renderPage(1);
+})();
+
+  </script>
+</body>
+</html>
